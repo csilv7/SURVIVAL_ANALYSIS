@@ -1,0 +1,1049 @@
+---
+format:
+  pdf:
+    documentclass: article
+    number-sections: True
+    toc-title: Sumário
+    papersize: a4
+    fontsize: 12pt
+    fig-pos: H
+    indent: True
+    header-includes: |
+      \input{TEX_AUX/preambule.tex}
+
+bibliography: C:/Users/user/Documents/PROJETOS/R/ANÁLISE DE SOBREVIVÊNCIA/book/references.bib
+dpi: 600
+lang: pt-BR
+---
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+#| label: Configuration R
+
+options(OutDec = ",")
+
+library(dplyr)
+library(survival)
+library(eha)
+library(ggplot2)
+```
+
+```{=latex}
+% --------
+% [*] CAPA
+% --------
+\input{TEX_AUX/cover.tex}
+
+% ------------------
+% [*] DEMAIS PÁGINAS
+% ------------------
+\input{TEX_AUX/other_pages.tex}
+
+% ----------
+% [*] RESUMO
+% ----------
+\input{TEX_AUX/abstract.tex}
+
+% --------------------
+% [*] SUMÁRIO E LISTAS
+% --------------------
+
+% Não enumerar a página atual
+\thispagestyle{empty}
+
+\begin{center}
+    \listoftables  % Lista de Tabelas
+    \listoffigures % Lista de Figuras
+\end{center}
+
+% Saltar p/ próxima página
+\newpage
+
+% Não enumerar a página atual
+\thispagestyle{empty}
+
+\begin{center}
+    \tableofcontents % Sumário
+\end{center}
+
+% Saltar p/ próxima página
+\newpage
+```
+
+# Introdução
+
+```{=latex}
+% Saltar p/ próxima página
+\newpage
+```
+
+# Revisão Bibliográfica
+
+```{=latex}
+% Saltar p/ próxima página
+\newpage
+```
+
+# Fundamentação Teórica
+
+## Conceitos Básicos
+
+A *Análise de Sobrevivência* é uma das áreas da *Estatística* e *Análise de Dados* que mais se desenvolveram nas últimas duas décadas do século XX. Esse avanço foi impulsionado pela evolução das técnicas estatísticas aliada ao progresso computacional.
+
+Na Análise de Sobrevivência, a variável resposta é, em geral, o *tempo até a ocorrência de um evento de interesse*. Especificamente, essa área se concentra em modelar e compreender o tempo necessário para que um evento significativo ocorra, sendo este denominado **tempo de falha**. Como exemplo, @colosimo2006analise mencionam casos como o tempo até a morte de um paciente;  tempo até a cura de uma doença ou até a recidiva de uma condição clínica.
+
+É comum, surgir entre os pesquisadores que iniciam os estudos em análise de sobrevivência, a dúvida de: por que não utilizar outras técnicas estatísticas? Outros métodos convencionais acabam por se tornar inadequados para dados de sobrevivência devido a uma característica única: a **censura**. Esse conceito refere-se à observação parcial do tempo de falha, como ocorre quando o acompanhamento de um paciente é interrompido antes do evento de interesse. A censura, sendo um elemento essencial da Análise de Sobrevivência, caracteriza situações em que o tempo de falha real é desconhecido, sabendo-se apenas que ele excede determinado ponto.
+
+### Tempo de Falha
+
+Em análise de sobrevivência, é fundamental estabelecer alguns pontos iniciais para o estudo. O primeiro deles é o **tempo inicial do estudo**, que deve ser claramente definido para garantir que os indivíduos sejam comparáveis no ponto de partida, diferenciando-se apenas pelas covariáveis medidas. Existem diversas maneiras de definir o tempo inicial, sendo o mais comum o **tempo cronológico**. Contudo, em áreas como Engenharia, outras métricas, como número de ciclos ou quilometragem, também podem ser utilizadas.
+
+Outro aspecto essencial é a **definição do evento de interesse**, frequentemente associado a falhas ou situações indesejáveis. Para garantir resultados consistentes, a definição do evento deve ser clara e objetiva. Um exemplo elucidativo é fornecido por @colosimo2006analise:
+
+> *"Em algumas situações, a definição de falha já é clara, como morte ou recidiva, mas em outras pode assumir termos ambíguos. Por exemplo, fabricantes de produtos alimentícios desejam saber o tempo de vida de seus produtos expostos em balcões frigoríficos de supermercados. O tempo de falha vai do momento de exposição (chegada ao supermercado) até o produto se tornar 'inapropriado para consumo'. Esse evento deve ser claramente definido antes do início do estudo. Por exemplo, o produto é considerado inapropriado para consumo quando atinge uma concentração específica de microrganismos por* $mm^{2}$ *de área."*
+
+### Censura
+
+Estudos clínicos que tratam a resposta como uma variável temporal geralmente são prospectivos e de longa duração. No entanto, mesmo sendo extensos, esses estudos frequentemente se encerram antes que todos os indivíduos passem pelo evento de interesse.
+
+Uma característica comum nesses estudos é a **censura**, que corresponde a observações incompletas ou parciais. Apesar disso, tais observações fornecem informações valiosas para a análise. @colosimo2006analise destacam a relevância de incluir dados censurados na análise:
+
+> *"Ressalta-se que, mesmo censurados, todos os resultados provenientes de um estudo de sobrevivência devem ser incluídos na análise estatística. Duas razões justificam esse procedimento: (i) mesmo sendo incompletas, as observações censuradas fornecem informações sobre o tempo de vida dos pacientes; (ii) a exclusão das censuras no cálculo das estatísticas pode levar a conclusões enviesadas."*
+
+Existem três tipos principais de censura:
+
+- **Censura Tipo I:** O estudo é encerrado após um período de tempo previamente definido.
+- **Censura Tipo II:** O estudo termina quando um número específico de indivíduos passa pelo evento de interesse.
+- **Censura Aleatória:** Ocorre quando um indivíduo é retirado do estudo antes do evento de interesse.
+
+A censura mais comum é a **censura à direita**, em que o evento ocorre após o tempo registrado. Entretanto, outros tipos de censura, como **à esquerda** e **intervalar**, também são possíveis. 
+
+Censura à esquerda ocorre quando o evento já aconteceu antes do início da observação. Um exemplo é um estudo sobre a idade em que crianças aprendem a ler:
+
+> *"Quando os pesquisadores começaram a pesquisa, algumas crianças já sabiam ler e não se lembravam com que idade isso ocorreu, caracterizando observações censuradas à esquerda."*
+
+No mesmo estudo, observa-se censura à direita para crianças que ainda não sabiam ler no momento da coleta de dados. Nesse caso, os tempos de vida são classificados como **duplamente censurados** [@turnbull1974nonparametric].
+
+A censura intervalar ocorre em estudos com visitas periódicas espaçadas, onde só se sabe que o evento ocorreu dentro de um intervalo de tempo. Quando o tempo de falha $T$ é impreciso, considera-se que ele pertence a um intervalo $T \in \left(L, U\right]$, conhecido como **sobrevivência intervalar**. Casos especiais incluem tempos de falha exatos, em que $L = U$, sendo $U = 0$ para censura à direita e $L = 0$ para censura à esquerda [@lindsey1998methods]. Destaca-se a seguinte observação de @colosimo2006analise:
+
+> *"A presença de censura traz desafios para a análise estatística. A censura do Tipo II é, em princípio, mais tratável que os outros tipos, mas para situações simples, que raramente ocorrem em estudos clínicos [@lawless1982statistical]. Na prática, utiliza-se resultados assintóticos para a análise dos dados de sobrevivência."*
+
+Ao analisar dados de sobrevicência pode ocorrer a confução entre os conceitos de *censura* e *dados truncados*. O truncamento é uma característica de alguns estudos de sobrevivência que, muitas vezes, é confundida com a censura. Ele ocorre quando certos indivíduos são excluídos do estudo devido a uma condição específica. Nesse caso, os pacientes só são incluídos no acompanhamento após passarem por um determinado evento, em vez de serem acompanhados desde o início do processo.
+
+### Representação dos Dados de Sobrevivência {#sec-ReprDados}
+
+Considere uma amostra aleatória de tamanho $n$. O $i$-ésimo indivíduo no estudo é geralmente representado pelo par $\left(t_{i}, \delta_{i}\right)$, onde $t_{i}$ é o tempo de falha ou censura, indicado pela variável binária $\delta_{i}$, definida como:
+
+$$
+\delta_{i} = \begin{cases}
+1, & \text{se } t_{i} \text{ é um tempo de falha} \\
+0, & \text{se } t_{i} \text{ é um tempo de censura}.
+\end{cases}
+$$
+
+Portanto, a variável resposta na análise de sobrevivência é representada por duas colunas no conjunto de dados. Se o estudo também incluir covariáveis, os dados são representados por $\left(t_{i}, \delta_{i}, \mathbf{x}_{i}\right)$. Caso a censura seja intervalar, a representação é $\left(l{i}, u_{i}, \delta_{i}, \mathbf{x}_{i}\right)$. Para exemplos de dados de sobrevivência, veja a Seção 1.5 do livro de @colosimo2006analise.
+
+### Especificando o Tempo de Sobrevivência
+
+Seja $T$ uma variável aleatória (v.a.), na maioria dos casos contínua, que representa o tempo de falha. Assim, o suporte de $T$ é definido nos reais positivos $\mathbb{R}^{+}$. Tal variável é geralmente representada pela sua *função risco* ou pela *função de taxa de falha* (ou taxa de risco). Tais funções, e outras relacionadas, são usadas ao longo do processo de análise de dados de sobrevivência. A seguir, algumas dessas funções e as relações entre elas serão definidas.
+
+#### Função de Sobrevivência
+
+Esta é uma das principais funções probabilísticas usadas em análise de sobrevivência. A função sobrevivência é definida como a probabilidade de uma observação não falhar até certo ponto $t$, ou seja a probabilidade de uma observação sobreviver ao tempo $t$. Em probabilidade, isso pode ser escrito como:
+
+$$
+S\left(t\right) = P\left(T > t\right),
+$$ {#eq-fSobrevida}
+
+\noindent uma conclusão a qual podemos chegar, é que a probabilidade de uma observação não sobreviver até o tempo $t$, é a acumulada até o ponto $t$, logo,
+
+$$
+F\left(t\right) = 1 - S\left(t\right).
+$$ {#eq-complfSobrevida}
+
+#### Função Taxa de Falha ou Função Risco
+
+A probabilidade da falha ocorrer em um intervalo de tempo $\left[t_{1}, t_{2}\right)$ pode ser expressa em termos da função de sobrevivência como: $$S\left(t_{1}\right) - S\left(t_{2}\right).$$
+
+A taxa de falha no intervalo $\left[t_{1}, t_{2}\right)$ é definida como a probabilidade de que a falha ocorra neste intervalo, dado que não ocorreu antes de $t_{1}$, dividida pelo comprimento do intervalo. Assim, a taxa de falha no intervalo $\left[t_{1}, t_{2}\right)$ é expressa por $$\dfrac{S\left(t_{1}\right) - S\left(t_{2}\right)}{\left(t_{2} - t_{1}\right)S\left(t_{1}\right)}.$$
+
+\noindent De forma geral, redefinindo o intervalo como $\left[t, t + \Delta t\right)$ a expressão assume a seguinte forma:
+
+$$
+\lambda\left(t\right) = \dfrac{S\left(t\right) - S\left(t + \Delta_{t}\right)}{\Delta t \text{ } S\left(t\right)}.
+$$
+
+Assumindo $\Delta t$ bem pequeno, $\lambda\left(t\right)$ representa a taxa de falha instantânea no tempo $t$ condicional à sobrevivência até o tempo $t$. Observe que as taxas de falha são números positivos, mas sem limite superior. A função de taxa de falha $\lambda\left(t\right)$ é bastante útil para descrever a distribuição do tempo de vida de pacientes. Ela descreve a forma em que a taxa instantânea de falha muda com o tempo. A função de taxa de falha de $T$ é, então, definida como:
+
+$$
+\lambda\left(t\right) = \lim_{\Delta t \to 0} \dfrac{P\left(t \leq T \leq t + \Delta t | T \geq t\right)}{\Delta t}.
+$$ {#eq-fTaxaFalha}
+
+A função de taxa de falha é mais informativa do que a função de sobrevivência. Diferentes funções de sobrevivência podem ter formas semelhantes, enquanto as respectivas funções de taxa de falha podem diferir drasticamente. Desta forma, a modelagem da função de taxa de falha é um importante método para dados de sobrevivência.
+
+#### Função Taxa de Falha Acumulada ou Função Risco Acumulado {#sec-TaxaAcu}
+
+Outra função útil em análise de dados de sobrevivência é a função taxa de falha acumulada. Esta função, como o próprio nome sugere, fornece a taxa de falha acumulada do indivíduo e é definida por:
+
+$$
+\Lambda\left(t\right) = \int_{0}^{t} \lambda\left(u\right) du.
+$$ {#eq-fTaxaFalhaAcumul}
+
+A função de taxa de falha acumulada, $\Lambda\left(t\right)$, não têm uma interpretação direta, mas pode ser útil na avaliação da função de maior interesse que é a função de taxa de falha, $\lambda\left(t\right)$. Isto acontece essencialmente na estimação não paramétrica em que $\Lambda\left(t\right)$ apresenta um estimador com propriedades ótimas e $\lambda\left(t\right)$ é difícil de ser estimada.
+
+#### Tempo Médio e Vida Média Residual
+
+Outras duas quantidades de interesse em análise de sobrevivência são: o tempo médio de via e a vida média residual. A primeira é obtida pela área sob a função de sobrevivência. Isto é,
+
+$$
+t_{m} = \int_{0}^{\infty} S\left(t\right) dt.
+$$ {#eq-TempMédio}
+
+Já a vida média residual é definida condicional a um certo tempo de vida $t$. Ou seja, para indivíduos com idade $t$ está quantidade mede o tempo médio restante de vida e é, então, a área sob a curva de sobrevivência à direita do tempo $t$ dividida por $S\left(t\right)$. Isto é,
+
+$$
+\text{vmr}\left(t\right) = \dfrac{\int_{0}^{\infty} \left(u - t\right) f\left(u\right) du}{S\left(t\right)} = \dfrac{\int_{0}^{\infty} S\left(u\right) du}{S\left(t\right)},
+$$ {#eq-TemVidaMediaResid}
+
+\noindent sendo $f\left(\cdot\right)$ a função densidade de $T$. Observe que $\text{vmr}\left(0\right) = t_{m}$.
+
+### Relações entre as Funções
+
+Para $T$ uma variável aleatória contínua e não-negativa, tem-se, em termos das funções definidas anteriormente, algumas relações matemáticas importantes entre elas, a saber:
+
+$$
+\lambda\left(t\right) = \dfrac{f\left(t\right)}{S\left(t\right)} = - \dfrac{d}{dt} \left[\ln\left\{S\left(t\right)\right\}\right]
+$$
+
+$$
+\Lambda\left(t\right) = \int_0^{t} \lambda\left(u\right) du = - \ln\left\{S\left(t\right)\right\}
+$$ 
+
+\noindent e 
+
+$$
+S\left(t\right) = \exp\left\{- \Lambda\left(t\right) \right\} = \exp\left\{- \int_0^{t} \lambda\left(u\right) du \right\}
+$$
+
+Tais relações mostram que o conhecimento de uma das funções, por exemplo $S\left(t\right)$, implica no conhecimento das demais, isto é, $F\left(t\right)$, $f\left(t\right)$, $\lambda\left(t\right)$ e $\Lambda\left(t\right)$. Outras relações envolvendo estas funções são as seguintes:
+
+$$
+S\left(t\right) = \dfrac{\text{vmr}\left(0\right)}{\text{vmr}\left(t\right)} \exp\left\{ - \int_0^{t} \dfrac{du}{\text{vmr}\left(u\right)} \right\}
+$$
+
+\noindent e
+
+$$
+\lambda\left(t\right) = \left( \dfrac{d \left[ \text{vmr}\left(t\right) \right]}{dt} + 1 \right) / \text{vmr}\left(t\right)
+$$
+
+## Técnicas Não Paramétricas
+
+As técnicas não paramétricas desempenham um importante papel na análise de sobrevivência, pois permitem a estimativa da função de sobrevivência sem a necessidade de pressupor uma distribuição específica dos tempos até a ocorrência do evento de interesse. Essa abordagem é especialmente útil em estudos onde a distribuição dos tempos de falha é desconhecida ou onde se deseja evitar suposições rígidas sobre sua forma.
+
+Diferentemente dos métodos paramétricos, que assumem distribuições predefinidas (como Weibull ou exponencial), as técnicas não paramétricas operam apenas com a ordenação dos eventos observados, tornando-se mais flexíveis e robustas e particularmente úteis na presença de dados censurados.
+
+### O Estimador de Kaplan-Meier
+
+Proposto por @kaplan1958nonparametric. É um estimador não paramétrico utilizado para estimar a função de sobrevivência. Tal estimador também é chamado de de *estimador limite-produto*. O Estimador de Kaplan-Meier é uma adaptação a $S\left(t\right)$ empiríca que, na ausência de censura nos dados, é definida como:
+
+$$
+\hat{S}\left(t\right) = \dfrac{\text{nº de observações que não falharam até o tempo } t}{\text{nº total de observações no estudo}}.
+$$
+
+\noindent $\hat{S}\left(t\right)$ é uma função que tem um formato gráfico de escada com degraus nos tempos observados de falha de tamanho $1/n$, onde $n$ é o tamanho amostral.
+
+O processo utilizado até se obter a estimativa de Kaplan-Meier é um processo passo a passo, em que o próximo passo depende do anterior. De forma suscetível, para qualquer $t$, $S\left(t\right)$ pode ser escrito em termos de probabilidades condicionais. Suponha que existam $n$ pacientes no estudo e $k \left(\leq n\right)$ falhas distintas nos tempos $t_{1} \leq t_{2} \leq \cdots \leq t_{k}$. Considerando $S\left(t\right)$ uma função discreta com probabilidade maior que zero somente nos tempos de falha $t_{j}$, $j = 1, \cdots, k$, tem-se que:
+
+$$
+S\left(t_{j}\right) = \left(1 - q_{1}\right) \left(1 - q_{2}\right) \cdots \left(1 - q_{j}\right),
+$$ {#eq-DecomposeSt}
+
+\noindent em que $q_{j}$ é a probabilidade de um indivíduo morrer no intervalo $\left[t_{j-1}, t{j}\right)$ sabendo que ele não morreu até $t_{j-1}$ e considerando $t_{0} = 0$. Ou seja, pode se escrever $q_{j}$ como:
+
+$$
+q_{j} = P\left(T \in \left[t_{j-1}, t_{j}\right) | T \geq t_{j-1}\right),
+$$ {#eq-FormProbQj}
+
+\noindent para $j = 1, \cdots, k$. A expressão geral do estimador de Kaplan-Meier pode ser apresentada após estas considerações preliminares. Considere:
+
+-   $t_{1} \leq t_{2} \leq \cdots \leq t_{k}$ os $k$ tempos distintos e ordenados de falha;
+-   $d_{j}$ o número de falhas em $t_{j}$, com $j = 1, \cdots, k$;
+-   $n_{j}$ o número de indivíduos sob risco em $t_{j}$, ou seja, os indivíduos que não falharam e não foram censurados até o instante imediatamente anterior a $t_{j}$.
+
+Com isso, pode-se definir o estimador de Kaplan-Meier como:
+
+$$
+\hat{S}_{KM}\left(t\right) = \prod_{j \text{ : } t_{j} < t} \left( \dfrac{n_{j} - d_{j}}{n_{j}} \right) = \prod_{j \text{ : } t_{j} < t} \left(1 - \dfrac{d_{j}}{n_{j}} \right)
+$$ {#eq-ESTKaplanMeier}
+
+De forma intuitiva, por assim dizer, a @eq-ESTKaplanMeier é proveniente da @eq-DecomposeSt, sendo está, uma decomposição de $S\left(t\right)$ em termos $q_{j}$'s. Assim, a @eq-ESTKaplanMeier é justificada se os $q_{j}$'s forem estimados por $d_{j}/n_{j}$, expresso em termos de probabilidade na @eq-FormProbQj. No artigo original de 1958, Kaplan e Meier provam que a @eq-ESTKaplanMeier é um *Estimador de Máxima Verossimilhança* (EMV) para $S\left(t\right)$. Seguindo certos passos, é possível provar que que $\hat{S}_{KM}\left(t\right)$ é EMV de $S\left(t\right)$. Supondo que $d_{j}$ observações falham no tempo tempo $t_{j}$, para $j = 1, \cdots, k$, e $m_{j}$ observações são censuradas no intervalo $\left[t_{j}, t_{j+1}\right)$, nos tempos $t_{j1}, \ldots, t_{jm_{j}}$. A probabilidade de falha no tempo $t_{j}$ é, então,
+
+$$
+S\left(t_{j}\right) - S\left(t_{j}+\right),
+$$
+
+\noindent com $S\left(t_{j}+\right) = \lim_{\Delta t \to 0+} S\left(t_{j} + \Delta t\right)$, $j = 1, \cdots, k$. Por outro lado, a contribuição para a função de verossimilhança de um tempo de sobrevivência censurado em $t_{jl}$ para $l = 1, \ldots, m_{j}$, é:
+
+$$
+P\left(T > t_{jl}\right) = S\left(t_{jl}+\right).
+$$
+
+\noindent A função de verossimilhança pode, então, ser escrita como:
+
+$$
+L\left(S\left(\cdot\right)\right) = \prod_{j = 0}^{k} \left\{ \left[ S\left(t_{j}\right) - S\left(t_{j}+\right) \right]^{d_{j}} \prod_{l=1}^{m_{j}} S\left(t_{jl}+\right) \right\}
+$$
+
+\noindent Com isso, é possível provar que $S\left(t\right)$ que maximiza $L\left(S\left(\cdot\right)\right)$ é exatamente a expressão dada pela @eq-ESTKaplanMeier.
+
+#### Propriedades do Estimador de Kaplan-Meier
+
+Como um estimador de máxima verossimilhança, o estimador de Kaplan-Meier têm interessantes propriedades. As principais são:
+
+-   É não-viciado para grandes amostras;
+-   É fracamente consistente;
+-   Converge assintoticamente para um processo gaussiano.
+
+A consistência e normalidade assintótica de $\hat{S}_{KM}\left(t\right)$ foram provadas sob certas condições de regularidade, por @breslow1974large e @meier1975estimation.
+
+#### Variância do Estimador de Kaplan-Meier
+
+Para que se possa construir intervalos de confiança e testar hipóteses para $S\left(t\right)$, se faz necessário ter conhecimento quanto variabilidade e precisão do estimador de Kaplan-Meier. Este estimador, assim como outros, está sujeito a variações que devem ser descritas em termos de estimações intervalares. A expressão da variância assintótica do estimador de Kaplan-Meier é dada pela @eq-VarKaplanMeier.
+
+$$
+\widehat{Var}\left[\hat{S}_{KM}\left(t\right)\right] = \left[\hat{S}_{KM}\left(t\right)\right]^{2} \sum_{j \text{ : } t_{j} < t} \dfrac{d_{j}}{n_{j} \left(n_{j} - d_{j}\right)}
+$$ {#eq-VarKaplanMeier}
+
+A expressão dada na @eq-VarKaplanMeier, é conhecida como fórmula de Greenwood e pode ser obtida a partir de propriedades do estimador de máxima verossimilhança. Os detalhes da obtenção da @eq-VarKaplanMeier estão disponíveis em @kalbfleisch1980statistical.
+
+Como $\hat{S}_{KM}\left(t\right)$, para um $t$ fixo, tem distribuição assintóticamente Normal. O intervalo de confiança com $100\left(1 - \alpha\right)$% de confiança para $\hat{S}_{KM}\left(t\right)$ é expresso por:
+
+$$
+\hat{S}_{KM}\left(t\right) \pm z_{\alpha/2} \sqrt{\widehat{Var}\left[\hat{S}_{KM}\left(t\right)\right]}.
+$$
+
+Vale salientar que para valores extremos de $t$, este intervalo de confiança pode apresentar limites que não condizem com a teoria de probabilidades. Para solucionar tal problema, aplica-se uma transformação em $\hat{S}_{KM}\left(t\right)$ como, por exemplo, $\hat{U}\left(t\right) = \ln\left\{ - \ln\left\{ \hat{S}_{KM}\left(t\right) \right\} \right\}$. Esta transformação foi sugerida por @kalbfleisch1980statistical, tendo sua variância estimada por:
+
+$$
+\widehat{Var}\left[\hat{U}\left(t\right)\right] = \dfrac{ \sum_{j:t_{j}<t} \frac{d_{j}}{n_{j}\left(n_{j}-d_{j}\right)} }{ \left[ \sum_{j:t_{j}<t} \ln\left\{ \frac{n_{j}-d_{j}}{n_{j}}\right\} \right]^{2} } = \dfrac{ \sum_{j:t_{j}<t} \frac{d_{j}}{n_{j}\left(n_{j}-d_{j}\right)} }{ \left[\ln\left\{ \hat{S}_{KM}\left(t\right) \right\}\right]^{2} }.
+$$
+
+Logo, pode-se aproximar um intervalo com $100 \left(1 - \alpha\right)\%$ de confiança para $S\left(t\right)$ desta forma:
+
+$$
+\left[ \hat{S}_{KM}\left(t\right) \right]^{ \exp\left\{ \pm z_{\alpha/2} \sqrt{\widehat{Var}\left[\hat{U}\left(t\right)\right]} \right\} }.
+$$
+
+Veja uma aplicação do estimador de Kaplan-Meier para os dados de *Leucemia Pediátrica* dispostos no Apêndice (A) do livro *Análise de Sobrevivência Aplicada* de @colosimo2006analise. De posse do conjunto de dados, pode-se estimar a curva de sobrevivência, tal curva foi ilustrada na @fig-SobrKM.
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+#| fig-cap: "Curva de Sobrevivência de Kaplan-Meier com IC de 95%"
+#| fig-cap-location: bottom
+#| label: fig-SobrKM
+
+# ---------------------------------
+# [1] IMPORTAÇÃO E AJUSTE DOS DADOS
+# ---------------------------------
+
+# Caminho URL para os dados
+url <- "https://docs.ufpr.br/~giolo/asa/dados/leucemia.txt"
+
+# Leitura dos dados
+dados <- read.table(url, header = TRUE)
+
+# -----------------------------
+# [2] ESTIMADOR DE KAPLAN-MEIER
+# -----------------------------
+ekm <- survfit(Surv(tempos, cens)~1, data = dados)
+
+# -----------------
+# [3] VISUALIZAÇÃO
+# -----------------
+
+# Preparando os dados para o ggplot2
+ekm_data <- data.frame(
+  time = ekm$time, survival = ekm$surv, 
+  lower = ekm$lower, upper = ekm$upper
+)
+
+# Gráfico com ggplot2
+ggplot(ekm_data, aes(x = time, y = survival)) +
+  geom_line(color = "blue", lwd = 1.2) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = "blue", alpha = 0.2) +
+  labs(x = "Tempo", y = "Probabilidade de Sobrevivência") +
+  theme_classic(base_size = 11) +
+  theme(
+    axis.title.x = element_text(face = "bold"),
+    axis.title.y = element_text(face = "bold")
+    )
+```
+
+### Outros Estimadores Não Parâmetricos
+
+O estimador de Kaplan-Meier é amplamente utilizado para estimar a função de sobrevivência $S(t)$. Ele está disponível em diversos pacotes estatísticos e é frequentemente abordado em materiais introdutórios de estatística. No entanto, dois outros estimadores também possuem relevância na literatura: o estimador de Nelson-Aalen e o estimador de Tabela de Vida.
+
+O estimador de Nelson-Aalen, desenvolvido posteriormente, apresenta similaridades com Kaplan-Meier em termos de propriedades, mas adota uma abordagem diferente ao focar na função risco acumulado $\Lambda(t)$.
+
+Já o estimador da Tabela de Vida, também chamado de tabela atuarial, tem um importante valor histórico, sendo amplamente utilizado por demógrafos e atuários desde o século XIX sendo empregado principalmente em grandes amostras. Seu uso é especialmente relevante em contextos demográficos e atuariais, como estudos de expectativa de vida e análise de dados censitários.
+
+Nesta seção será abordado apenas o estimador de Nelson-Aalen. Para conhecer mais sobre o estimador da Tabela de Vida ou Tabela Atuarial, consulte a Seção 2.4.2 do livro *Análise de Sobrevivência Aplicada* de @colosimo2006analise.
+
+#### Estimador de Nelson-Aalen
+
+Mais recente que o estimador de Kaplan-Meier, este estimador se baseia na função de sobrevivência expressa da seguinte forma:
+
+$$
+S(t) = \exp\left\{ - \Lambda(t) \right\},
+$$
+
+\noindent em que $\Lambda(t)$ é a função de risco acumulado apresentada na @sec-TaxaAcu.
+
+A estimativa para $\Lambda(t)$ foi inicialmente proposta por @nelson1972theory posteriormente retomada por @aalen1978nonparametric que demonstrou suas propriedades assintóticas utilizando processos de contagem. Na literatura, esse estimador é amplamente conhecido como o estimador de Nelson-Aalen e é definido pela seguinte expressão:
+
+$$
+\hat{\Lambda}(t) = \sum_{j:t_{j} < t} \left( \dfrac{d_{j}}{n_{j}} \right),
+$$ {#eq-ESTNelsonAalen}
+
+\noindent onde $d_{j}$ e $n_{j}$ são as mesmas definições usadas no estimador de Kaplan-Meier. A variância do estimador, conforme proposta por @aalen1978nonparametric, é dada por:
+
+$$
+\widehat{Var}\left[\hat{\Lambda}(t)\right] = \sum_{j:t_{j} < t} \left( \dfrac{d_{j}}{n_{j}^{2}} \right).
+$$ {#eq-VarNelsonAalen}
+
+\noindent Uma alternativa para a estimativa da variância de $\hat{\Lambda}(t)$, proposta por @klein1991small, é:
+
+$$
+\widehat{Var}\left[\hat{\Lambda}(t)\right] = \sum_{j:t_{j} < t} \dfrac{(n_{j} - d_{j})d_{j}}{n_{j}^{3}},
+$$
+
+\noindent entretanto, o estimador da @eq-VarNelsonAalen apresenta menor vício, tornando-o mais preferível que o proposto por @klein1991small.
+
+Desta forma, podemos definir, com base no estimador de Nelson-Aalen, um estimador para a função de sobrevivência, podendo ser expressa por:
+
+$$
+\hat{S}_{NA}(t) = \exp\left\{- \hat{\Lambda}(t) \right\}.
+$$
+
+Deve-se, a variância deste estimador, a @aalen1978empirical. Podendo ser mensurada pela expressão:
+
+$$
+\widehat{Var}\left[\hat{S}_{NA}(t)\right] = \left[ \hat{S}_{NA}(t) \right]^{2} \sum_{j:t_{j} < t} \left( \dfrac{d_{j}}{n_{j}^{2}} \right).
+$$
+
+Uma aplicação do estimador de Nelson-Aalen foi desenhada na @fig-ExampleNA em dois subgráficos. O primeiro apresenta a função de risco acumulado $\Lambda(t)$ estimada conforme a @eq-ESTNelsonAalen. O segundo mostra a curva de sobrevivência de Nelson-Aalen através das relações entre as funções de análise de sobrevivência.
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+#| fig-cap: "Função Risco Acumulado e Função Sobrevivência com IC de 95% segundo o Estimador de Nelson-Aalen."
+#| fig-subcap: 
+#| - "Função Risco Acumulado"
+#| - "Função Sobrevivência"
+#| layout-ncol: 2
+#| layout-nrow: 1
+#| fig-cap-location: bottom
+#| label: fig-ExampleNA
+
+# ------------------
+# [1.2] NELSON-AALEN
+# ------------------
+
+# Nível de Significância
+alpha <- 0.05
+
+# Quantil da Distribuição Normal
+z <- qnorm(1 - alpha/2)
+
+# ---------------------------------
+# [1.2.2] Estimador de Nelson-Aalen
+# ---------------------------------
+fit <- survfit(Surv(tempos, cens)~1, data = dados)
+
+# h(t) e Var[h(t)]
+ena <- cumsum(fit$n.event/fit$n.risk)
+var.ena <- cumsum(fit$n.event/fit$n.risk^2)
+
+# S(t) e Var[S(t)]
+ena.st <- exp(-ena)
+var.ena.st <- ena.st^2 * var.ena
+
+# Intervalo de Confiança de S(t)
+conf.lower <- ena.st - z * sqrt(var.ena.st)
+conf.upper <- ena.st + z * sqrt(var.ena.st)
+
+# --------------------
+# [1.2.3] Visualização
+# --------------------
+ggplot(data = NULL, aes(x = fit$time, y = ena)) +
+  geom_line(color = "red", lwd = 1.2) +
+  labs(x = "Tempo", y = "Risco Acumulado") +
+  theme_classic(base_size = 11) +
+  theme(
+    axis.title.x = element_text(face = "bold"),
+    axis.title.y = element_text(face = "bold")
+  )
+
+ggplot(data = NULL, aes(x = fit$time, y = ena.st)) +
+  geom_line(color = "blue", lwd = 1.2) +
+  labs(x = "Tempo", y = "Probabilidade de Sobrevivência") +
+  geom_ribbon(aes(ymin = conf.lower, ymax = conf.upper), fill = "blue", alpha = 0.2) +
+  theme_classic(base_size = 11) +
+  theme(
+    axis.title.x = element_text(face = "bold"),
+    axis.title.y = element_text(face = "bold")
+  )
+```
+
+Vale destacar que o estimador de Nelson-Aalen apresenta, na maioria dos casos, estimativas próximas ao estimador de Kaplan-Meier. @bohoris1994comparison mostrou que $\hat{S}_{NA}(t) \geq \hat{S}_{KM}(t)$ para todo $t$, isto é, as estimativas obtidas pelo estimador de Nelson-Aalen são maiores ou iguais às estimativas obtidas pelo estimador de Kaplan-Meier.
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+#| fig-cap: "Comparação Entre as Curvas de Sobrevivência de Kaplan-Meier Nelson-Aalen."
+#| layout-nrow: 1
+#| fig-cap-location: bottom
+#| label: fig-CompareSurv
+
+ggplot(data = NULL, aes(x = ekm$time)) +
+  geom_line(aes(y = ekm$surv, color = "Kaplan-Meier"), lwd = 1.2) +
+  geom_ribbon(aes(ymin = ekm$lower, ymax = ekm$upper), fill = "blue", alpha = 0.2) +
+  
+  geom_line(aes(y = ena.st, color = "Nelson-Aalen"), lwd = 1.2) +
+  geom_ribbon(aes(ymin = conf.lower, ymax = conf.upper), fill = "red", alpha = 0.2) +
+  
+  labs(x = "Tempo", y = "Probabilidade de Sobrevivência", color = "Estimador") +
+  
+  scale_color_manual(values = c("Kaplan-Meier" = "blue", "Nelson-Aalen" = "red")) +
+  
+  theme_classic(base_size = 11) +
+  theme(
+    legend.position = "top",
+    axis.title.x = element_text(face = "bold"),
+    axis.title.y = element_text(face = "bold")
+  )
+```
+
+## Técnicas Paramétricas
+
+Na análise de sobrevivência, métodos não paramétricos estimam funções sem assumir uma distribuição prévia para o tempo de falha. O estimador de Kaplan-Meier, por exemplo, calcula probabilidades diretamente dos dados, sendo útil para comparar curvas de sobrevivência entre grupos. No entanto, essa abordagem não permite avaliar diretamente o impacto de covariáveis, como idade ou tipo de tratamento, sobre a sobrevivência.
+
+Os modelos paramétricos, por outro lado, assumem uma distribuição específica para o tempo de ocorrência do evento, permitindo estimativas mais estruturadas e eficientes. Assim como ocorre em modelos de regressão (linear, Poisson, logístico), esses métodos possibilitam relacionar covariáveis diretamente ao tempo de sobrevivência, garantindo uma análise mais detalhada e interpretável.
+
+Entretanto, quais distribuições de probabilidade são adequadas para representar o tempo até a ocorrência do evento de interesse? Como o tempo de sobrevivência $T$ é uma variável contínua e não negativa, algumas distribuições comuns — como a normal — não são apropriadas, pois permitem valores negativos. Além disso, dados de sobrevivência frequentemente apresentam assimetria à direita, indicando que poucos indivíduos sobrevivem por períodos longos enquanto a maioria tem eventos precoces. Reforçando a inadequação de algumas distribuições para representação probabilística do tempo de sobrevivência.
+
+### Distribuição Exponencial {#sec-DistExp}
+
+Se $T \sim \text{Exponencial}(\alpha)$. Sua função densidade de probabilidade é expressa da seguinte forma:
+
+$$
+f(t) = \alpha \exp\left\{ -\alpha t \right\}.
+$$ {#eq-DensitExp}
+
+Desta forma, podemos obter a função sobrevivência com base no completar da distribuição acumulada de $T$:
+
+```{=latex}
+\begin{align*}
+    S(t) & = P(T > t) = 1 - P(T \leq t) = 1 - F(t) \\
+         & = 1 - \left[1 - \exp\left\{ -\alpha t \right\}\right].
+\end{align*}
+```
+
+\noindent Assim definimos, formalmente, a função sobrevivência como:
+
+$$
+S(t) = \exp\left\{ -\alpha t \right\}.
+$$ {#eq-StExp}
+
+Note que o parâmetro $\alpha$ é a velocidade de queda da função sobrevivência. Através das relações entre as funções em análise de sobrevivência, temos a função risco ou taxa de falha. Obtida pela razão entre da função densidade de probabilidade e a função sobrevivência:
+
+$$
+\lambda(t) = \dfrac{f(t)}{S(t)} = \dfrac{\alpha \exp\{ -\alpha t \}}{\exp\{ -\alpha t \}} = \alpha.
+$$ {#eq-RiscoExp}
+
+Sendo a função risco constante para todo tempo observado $t$, o risco acumulado é função linear no tempo com inclinação da reta dada por $\alpha$:
+
+$$
+\Lambda(t) = - \ln\left\{S(t)\right\} = - \ln\left\{ \exp\{ -\alpha t \} \right\} = - (- \alpha t) = \alpha t
+$$ {#eq-RiscoAcumExp}
+
+Veja, a seguir, a @fig-CurvasExp que mostra as curvas de densidade de probabilidade, de sobrevivência, risco e risco acumulado para diferentes valores do parâmetro $\alpha$.
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+#| fig-cap: "Funções Densidade de Probabilidade, Sobrevivência, Risco e Risco Acumulado segundo uma Distribuição Exponencial para diferentes valores do Parâmetro de Taxa."
+#| fig-cap-location: bottom
+#| fig-subcap: 
+#| - "Função Densidade de Probabilidade"
+#| - "Função Sobrevivência"
+#| - "Função Risco"
+#| - "Função Risco Acumulado"
+#| layout-ncol: 2
+#| layout-nrow: 2
+#| label: fig-CurvasExp
+
+# ---------------------------
+# [1] DISTRIBUIÇÃO EXPONENCIAL
+# ---------------------------
+# -------------
+# [1.1] FUNÇÕES
+# -------------
+
+density.exp <- function(times, rate.par) dexp(x = times, rate = rate.par)
+survival.exp <- function(times, rate.par) 1 - pexp(q = times, rate = rate.par)
+hazard.exp <- function(times, rate.par) density.exp(times, rate.par)/survival.exp(times, rate.par)
+accumul.hazard.exp <- function(times, rate.par) - log(x = survival.exp(times, rate.par))
+
+# ----------------------------------------
+# [1.2] SIMULAÇÃO E VARIAÇÃO DE PARÂMETROS
+# ----------------------------------------
+
+set.seed(123456789)            # Semente para reprodutibilidade
+n <- 1000                      # Tamanho amostral
+times <- rexp(n, rate = 1)     # Simulando dados de uma exponencial
+alphas <- c(1, 1.5, 2, 2.5, 3) # Valores do parâmetro a serem avaliados
+
+# Criando um Data Frame com valores das funções
+dados.exp <- do.call(
+  rbind, lapply(alphas, function(alpha) {
+    data.frame(
+      times = sort(times),
+      ft = density.exp(sort(times), alpha),
+      st = survival.exp(sort(times), alpha),
+      ht = hazard.exp(sort(times), alpha),
+      Ht = accumul.hazard.exp(sort(times), alpha),
+      rate = factor(alpha)
+    )
+  })
+)
+
+# ---------------------------------------------
+# [1.3] FUNÇÃO GRÁFICA & VISUALIZAÇÕES GRÁFICAS
+# ---------------------------------------------
+plot.function.exp <- function(df, f, label) {
+  ggplot(data = df, aes_string(x = "times", y = f, color = "rate")) +
+    geom_line(size = 1.15) +
+    labs(x = "Tempo", y = label, color = expression(alpha)) +
+    scale_color_manual(
+      values = c("red", "blue", "green", "purple", "orange"), 
+      labels = (levels(df$rate))
+    ) +
+    theme_classic(base_size = 11) +
+    theme(
+      legend.position = "right",
+      axis.title.x = element_text(face = "bold"),
+      axis.title.y = element_text(face = "bold")
+    )
+}
+
+# Plotando a função densidade de probabilidade
+plot.function.exp(dados.exp, "ft", "Densidade de Probabilidade")
+
+# Plotando a função de sobrevivência
+plot.function.exp(dados.exp, "st", "Probabilidade de Sobrevivência")
+
+# Plotando a função de risco
+plot.function.exp(dados.exp, "ht", "Risco")
+
+# Plotando a função de risco acumulado
+plot.function.exp(dados.exp, "Ht", "Risco Acumulado")
+```
+
+Note que, o parâmetro $\alpha$ deve ser sempre positivo e quanto maior o valor de $\alpha$ (taxa), mais abruptamente a função sobrevivência $S(t)$ decresce, e maior é a inclinação da função de risco acumulado. Quando $\alpha = 1$, a distribuição é denominada exponencial padrão.
+
+A distribuição exponencial, por possuir um único parâmetro, é matematicamente simples e apresenta um formato assimétrico. Seu uso em análise de sobrevivência tem uma analogia com a suposição de normalidade em outras técnicas e áreas da estatística. Entretanto, a suposição de risco constante associada a essa distribuição é bastante restritiva e, em muitos casos, pode não ser realista. Essa característica da distribuição exponencial é conhecida como falta de memória, o que significa que o risco futuro é independente do tempo já decorrido.
+
+A média e a variância do tempo de sobrevivência, para uma variável que segue a distribuição exponencial, são expressas como funções inversas do parâmetro de taxa ($\alpha$). Assim, quanto maior o risco, menor o tempo médio de sobrevivência e menor a variabilidade em torno da média. As expressões são dadas por:
+
+$$
+E\left[T\right] = \dfrac{1}{\alpha},
+$$
+
+$$
+Var\left[T\right] = \dfrac{1}{\alpha^2}.
+$$
+
+\noindent Como a distribuição de $T$ é assimétrica, se torna mais usual utilizar o *tempo mediano de sobrevivência* ao invés de tempo médio. Pode-se obter o tempo mediano de sobrevivência a partir de um tempo $t$, tal que, $S(t) = 0,5$, logo,
+
+```{=latex}
+\begin{align*}
+    S(t) & = 0,5 \Leftrightarrow \exp\left\{ -\alpha t \right\} = 0,5 \Leftrightarrow -\alpha t = \ln\left\{2^{-1}\right\} \\
+    \alpha t & = - (-\ln\left\{2\right\}) \Leftrightarrow \alpha t = \ln\left\{2\right\}.
+\end{align*}
+```
+
+\noindent Desta forma, o tempo mediano de sobrevivência é definido como:
+
+$$
+T_{mediano} = \dfrac{\ln\left\{2\right\}}{\alpha}.
+$$
+
+Em resumo, o modelo exponencial é apropriado para situações em que o período do experimento é curto o suficiente para que a suposição de risco constante seja plausível.
+
+### Distribuição Weibull {#sec-DistWeibull}
+
+Na maioria dos casos de análise de sobrevivência - principalmente na área da saúde - é mais razoável supor que o risco varia ao longo do tempo, em vez de permanecer constante. Atualmente, a Distribuição Weibull é amplamente utilizada, pois permite modelar essa variação do risco ao longo do tempo. Como será demonstrado, a distribuição exponencial é um caso particular da distribuição Weibull.
+
+Se o tempo de sobrevivência $T$ segue uma distribuição Weibull, isto é, $T \sim \text{Weibull}(\gamma, \alpha)$, sua função densidade de probabilidade é dada por:
+
+$$
+f(t) = \dfrac{ \gamma }{ \alpha^{\gamma} } t^{\gamma - 1} \exp \left\{ - \left( \dfrac{t}{\alpha} \right)^{\gamma} \right\}.
+$$ {#eq-DensitWeib}
+
+A partir da @eq-DensitWeib é possível chegar a função sobrevivência da distribuição Weibull sendo está função definida como:
+
+$$
+S(t) = \exp \left\{ - \left( \dfrac{t}{\alpha} \right)^{\gamma} \right\},
+$$ {#eq-StWeibull}
+
+A função risco, $\lambda(t)$, depende do tempo de sobrevivência. Apresentando variação no tempo conforme a expressão:
+
+$$
+\lambda (t) = \dfrac{f(t)}{S(t)} = \dfrac{ \gamma }{ \alpha^{\gamma} } t^{\gamma - 1}
+$$ {#eq-RiscoWeibull}
+
+\noindent e a função risco acumulado da distribuição Weibull é dada por:
+
+$$
+\Lambda (t) = - \ln\left\{S(t)\right\} = - \ln \left\{ \exp \left\{ - \left( \dfrac{t}{\alpha} \right)^{\gamma} \right\} \right\} = \left( \dfrac{t}{\alpha} \right)^{\gamma}.
+$$ {#eq-RiscAcumWeibull}
+
+Note que, o parâmetro $\gamma$ determina a forma função risco da seguinte maneira:
+
+- $\gamma < 1 \rightarrow$ função de risco decresce;
+- $\gamma > 1 \rightarrow$ função de risco cresce;
+- $\gamma = 1 \rightarrow$ função de risco constante, caindo no caso particular da distribuição exponencial.
+
+Veja, a seguir, a @fig-CurvasWeibull que mostra as curvas de densidade, sobrevivência, risco e risco acumulado para diferentes valores do parâmetro de forma $\gamma$ e o de escala $\alpha = 1$.
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+#| fig-cap: "Funções Densidade de Probabilidade, Sobrevivência, Risco e Risco Acumulado segundo uma Distribuição Weibull para diferentes valores do Parâmetro de Forma e um valor fixo para o Parâmetro de Escala."
+#| fig-cap-location: bottom
+#| fig-subcap: 
+#| - "Função Densidade de Probabilidade"
+#| - "Função Sobrevivência"
+#| - "Função Risco"
+#| - "Função Risco Acumulado"
+#| layout-ncol: 2
+#| layout-nrow: 2
+#| label: fig-CurvasWeibull
+
+# ------------------------
+# [2] DISTRIBUIÇÃO WEIBULL
+# ------------------------
+# -------------
+# [2.1] FUNÇÕES
+# -------------
+
+density.weib <- function(times, shape.par, scale.par) dweibull(x=times, shape=shape.par, scale=scale.par)
+survival.weib <- function(times, shape.par, scale.par) 1 - pweibull(q=times, shape=shape.par, scale=scale.par)
+hazard.weib <- function(times, shape.par, scale.par) density.weib(times,shape.par,scale.par)/survival.weib(times,shape.par,scale.par)
+accumul.hazard.weib <- function(times, shape.par, scale.par) - log(x = survival.weib(times,shape.par,scale.par))
+
+# ----------------------------------------
+# [2.2] SIMULAÇÃO E VARIAÇÃO DE PARÂMETROS
+# ----------------------------------------
+n <- 1000                                  # Tamanho amostral
+times <- rweibull(n, shape = 2, scale = 1) # Simulando dados de uma Weibull
+alpha <- 1                                 # Fixo para simplificar
+gammas <- c(0.5, 1.0, 1.5, 2.0, 2.5, 3.0)  # Valores do parâmetro a serem avaliados
+
+# Criando um Data Frame com valores das funções
+dados.weib <- do.call(rbind, lapply(gammas, function(gamma) {
+  data.frame(
+    times = sort(times),
+    ft = density.weib(sort(times), gamma, alpha),
+    st = survival.weib(sort(times), gamma, alpha),
+    ht = hazard.weib(sort(times), gamma, alpha),
+    Ht = accumul.hazard.weib(sort(times), gamma, alpha),
+    gamma = factor(gamma)
+  )
+}))
+
+# ---------------------------------------------
+# [2.3] FUNÇÃO GRÁFICA & VISUALIZAÇÕES GRÁFICAS
+# ---------------------------------------------
+plot.function.weib <- function(df, f, label) {
+  ggplot(data = df, aes_string(x = "times", y = f, color = "gamma")) +
+    geom_line(size = 1.15) +
+    labs(x = "Tempo", y = label, color = expression(gamma)) +
+    scale_color_manual(
+      values = c("red", "blue", "green", "purple", "orange", "brown"), 
+      labels = (levels(df$gamma))
+    ) +
+    theme_classic(base_size = 11) +
+    theme(
+      legend.position = "right",
+      axis.title.x = element_text(face = "bold"),
+      axis.title.y = element_text(face = "bold")
+    )
+}
+
+# Plotando a função densidade de probabilidade
+plot.function.weib(dados.weib, "ft", "Densidade de Probabilidade")
+
+# Plotando a função de sobrevivência
+plot.function.weib(dados.weib, "st", "Probabilidade de Sobrevivência")
+
+# Plotando a função de risco
+plot.function.weib(dados.weib, "ht", "Risco")
+
+# Plotando a função de risco acumulado
+plot.function.weib(dados.weib, "Ht", "Risco Acumulado")
+```
+
+Perceba que $\alpha$ - parâmetro escala - e $\gamma$ - parâmetro de forma - são definidos dentro dos $\mathbb{R}^{+}$. É incluso a função Gama na média e variância da distribuição Weibull, assim,
+
+$$
+E[T] = \alpha \Gamma\left[1 + (1/\gamma)\right]
+$$ 
+\noindent e
+
+$$
+Var[T] = \alpha^{2} \left[ \Gamma \left[1 + (2/\gamma)\right] - \Gamma\left[1 + (1/\gamma)\right]^{2} \right]
+$$
+
+\noindent sendo a função Gama $\Gamma [k]$ expressa por $\Gamma [k] = \int_{0}^{\infty} t^{k -1} \exp\{t\} dt$. Afim de se obter o tempo mediano de sobrevivência, igualamos a probabilidade de sobrevivência a $0,5$. Desta forma:
+
+```{=latex}
+\begin{align*}
+    S(t) & = 0,5 \Leftrightarrow \exp \left\{ - \left( \dfrac{t}{\alpha} \right)^{\gamma} \right\} = 0,5 \\
+    - \left( \dfrac{t}{\alpha} \right)^{\gamma} & = \ln\left\{2^{-1}\right\} \Leftrightarrow \left( \dfrac{t}{\alpha} \right)^{\gamma} = \ln\left\{2\right\} \\
+    \dfrac{t}{\alpha} & = \left[ \ln\left\{2\right\} \right]^{1/\gamma}.
+\end{align*}
+```
+
+\noindent Logo, definimos o tempo mediano de sobrevivência da distribuição Weibull como:
+
+$$
+T_{mediano} = \alpha [\ln{(2)}]^{1/\gamma}.
+$$
+
+### Distribuição Log-normal
+
+Uma alternativa para modelar o tempo de sobrevivência é a distribuição log-normal. Dizemos que uma variável aleatória $T$ tem distribuição log-normal com parâmetros $\mu$ e $\sigma^{2}$, denotado por $T \sim \text{Log-normal}(\mu, \sigma^2)$, quando o logaritmo natural de $T$, ou seja, $T^{*} = \ln\left\{T\right\}$, segue uma distribuição normal, isto é, $T^{*} \sim \text{Normal}(\mu, \sigma^2)$. Nesse caso, $\mu$ e $\sigma^2$ correspondem à média e variância de $\ln\left\{T\right\}$. De forma equivalente, pode-se dizer que se $T^{*} \sim \text{Normal}(\mu, \sigma^2)$, então $T = \exp\left\{T^{*}\right\} \sim \text{Log-normal}(\mu, \sigma^2)$. A função densidade de probabilidade da distribuição log-normal é dada por:
+
+$$
+f(t) = \frac{1}{t \sigma \sqrt{2\pi}} \exp\left\{ -\frac{1}{2} \left(\frac{\ln(t) - \mu}{\sigma}\right)^2 \right\}.
+$$ {#eq-DensitLognormal}
+
+Quando o tempo de sobrevivência segue essa distribuição, a função sobrevivência $S(t)$ é expressa por meio da função de distribuição da normal padrão:
+
+$$
+S(t) = \Phi\left( \frac{-\ln\left\{t\right\} + \mu}{\sigma} \right).
+$$ {#eq-StLognormal}
+
+\noindent Já as funções risco e risco acumulado não têm formas analíticas simples. Porém, podem ser obtidas por meio das relações entre as funções de análise de sobrevivência. Com isso, definimos, respectivamente, a função risco e a função risco acumulado pela expressão:
+
+$$
+\lambda(t) = \frac{f(t)}{S(t)}, \quad \Lambda(t) = -\ln\left\{S(t)\right\}.
+$$
+
+A @fig-CurvasLognormal ilustras as curvas usadas na análise de sobrevivência segundo uma distribuição log-normal, variando o parâmetro de locação $\mu$ e fixando o parâmetro de escala $\sigma = 1$.
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+#| fig-cap: "Funções Densidade de Probabilidade, Sobrevivência, Risco e Risco Acumulado segundo uma Distribuição Log-normal para diferentes valores do Parâmetro de Locação e um valor fixo para o Parâmetro de Escala."
+#| fig-cap-location: bottom
+#| fig-subcap: 
+#| - "Função Densidade de Probabilidade"
+#| - "Função Sobrevivência"
+#| - "Função Risco"
+#| - "Função Risco Acumulado"
+#| layout-ncol: 2
+#| layout-nrow: 2
+#| label: fig-CurvasLognormal
+
+# ---------------------------
+# [3] DISTRIBUIÇÃO LOG-NORMAL
+# ---------------------------
+# -------------
+# [3.1] FUNÇÕES
+# -------------
+
+density.lnorm <- function(times, loc.par, scale.par) dlnorm(x=times, loc.par, scale.par)
+survival.lnorm <- function(times, loc.par, scale.par) 1 - pnorm(q=(log(times)-loc.par)/scale.par)
+hazard.lnorm <- function(times, loc.par, scale.par) density.lnorm(times, loc.par, scale.par)/survival.lnorm(times, loc.par, scale.par)
+accumul.hazard.lnorm <- function(times, loc.par, scale.par) - log(x=survival.lnorm(times, loc.par, scale.par))
+
+# ----------------------------------------
+# [3.2] SIMULAÇÃO E VARIAÇÃO DE PARÂMETROS
+# ----------------------------------------
+n <- 1000                                  # Tamanho amostral
+times <- rlnorm(n, meanlog = 0, sdlog = 1) # Simulando dados de uma Log-normal
+loc.pars <- c(0, 0.5, 1, 1.5, 2, 2.5)      # Valores de mu
+scale.par <- 1                             # Valor fixo de sigma
+
+# Criando um Data Frame com valores das funções
+dados.lnorm <- do.call(
+  rbind, lapply(loc.pars, function(loc.par) {
+    data.frame(
+      times = sort(times),
+      ft = density.lnorm(sort(times), loc.par, scale.par),
+      st = survival.lnorm(sort(times), loc.par, scale.par),
+      ht = hazard.lnorm(sort(times), loc.par, scale.par),
+      Ht = accumul.hazard.lnorm(sort(times), loc.par, scale.par),
+      mu = factor(loc.par)
+    )
+  })
+)
+
+# ---------------------------------------------
+# [3.3] FUNÇÃO GRÁFICA & VISUALIZAÇÕES GRÁFICAS
+# ---------------------------------------------
+
+plot.function.lnorm <- function(df, f, label) {
+  ggplot(data = df, aes_string(x = "times", y = f, color = "mu")) +
+    geom_line(size = 1.15) +
+    labs(x = "Tempo", y = label, color = expression(mu)) +
+    scale_color_manual(
+      values = c("red", "blue", "green", "purple", "orange", "brown"), 
+      labels = (levels(df$mu))
+    ) +
+    theme_classic(base_size = 11) +
+    theme(
+      legend.position = "right",
+      axis.title.x = element_text(face = "bold"),
+      axis.title.y = element_text(face = "bold")
+    )
+}
+
+# Plotando a função densidade de probabilidade
+plot.function.lnorm(dados.lnorm, "ft", "Densidade de Probabilidade")
+
+# Plotando a função de sobrevivência
+plot.function.lnorm(dados.lnorm, "st", "Probabilidade de Sobrevivência")
+
+# Plotando a função de risco
+plot.function.lnorm(dados.lnorm, "ht", "Risco")
+
+# Plotando a função de risco acumulado
+plot.function.lnorm(dados.lnorm, "Ht", "Risco Acumulado")
+```
+
+O valor esperado e a variância da distribuição log-normal podem ser expressas em termos da distribuição normal. Desta forma, o valor esperado de $T$ é expresso por:
+
+$$
+E[T] = \exp\left\{\mu + \sigma^{2} / 2\right\}.
+$$
+
+\noindent Já a variância de $T$ é dada por:
+
+$$
+Var[T] = \exp\left\{2 \mu + \sigma^{2} \right\} \cdot (\exp\left\{\sigma^{2}\right\} - 1).
+$$
+
+### Distribuição Exponencial por Partes
+
+### Distribuição Exponencial por Partes Potência
+
+### Estimação de Parâmetros - Método de Máxima Verossimilhança
+
+Foram apresentados alguns modelos probabilísticos. Esses modelos possuem quantidades desconhecidas, denominadas **parâmetros**, ou **parâmetro**, quando o modelo depende de uma única quantidade desconhecida, como no caso da distribuição exponencial.
+
+O *Método de Máxima Verossimilhança* baseia-se no princípio de que, a partir de uma amostra aleatória, a melhor estimativa para o parâmetro de interesse é aquela que maximiza a probabilidade daquela amostra ter sido observada [@bussab2010estatistica], tornando a amostra mais verossímil.
+
+De forma simples, o método de máxima verossimilhança condensa toda a informação contida na amostra, por meio da *função de verossimilhança*, para encontrar o(s) parâmetro(s) da distribuição que melhor expliquem os dados. Essa abordagem utiliza o produtório das densidades $f(t)$ para cada observação $t_i$, $i = 1, 2, \ldots, n$. Em livros introdutórios de estatística, a função de verossimilhança é definida da seguinte maneira, para um parâmetro ou vetor de parâmetros $\boldsymbol{\theta}$:
+
+$$
+L(\theta) = \prod_{i = 1}^{n} f(t_{i} | \theta).
+$$
+
+Observe que $L$ é uma função de $\theta$, que pode ser um único parâmetro ou um vetor de parâmetros, como ocorre na distribuição log-normal, onde $\theta = (\mu, \sigma^2)$. No entanto, em análise de sobrevivência, essa definição tradicional de função de verossimilhança é insuficiente, pois os dados frequentemente apresentam **censura**, o que implica que o tempo de evento pode ser apenas parcialmente observado.
+
+Para lidar com essa característica, utiliza-se a variável indicadora $\delta_{i}$, apresentada na @sec-ReprDados, que identifica se o $i$-ésimo tempo é um tempo de evento ou de censura. Com base nessa informação, a função de verossimilhança é ajustada da seguinte forma:
+
+-   Para $\delta_{i} = 1$, o $i$-ésimo tempo é um tempo de evento, e sua contribuição para $L(\theta)$ é a densidade de probabilidade $f(t_{i} | \theta)$;
+-   Para $\delta_i = 0$, o $i$-ésimo tempo é um tempo censurado, e sua contribuição para $L(\theta)$ é a função de sobrevivência $S(t_{i} | \theta)$.
+
+Assim, a função de verossimilhança ajustada, que incorpora dados censurados, é expressa como:
+
+
+```{=latex}
+\begin{align}
+    L(\theta) & = \prod_{i = 1}^{n} \left[ f(t_{i} | \theta) \right]^{\delta_i} \left[ S(t_{i} | \theta) \right]^{1 - \delta_{i}} \nonumber \\
+    L(\theta) & = \prod_{i = 1}^{n} \left[ \lambda(t_{i} | \theta) \right]^{\delta_i} S(t_{i} | \theta).
+    \label{eq:verossilGeneric}
+\end{align}
+```
+
+Para encontrar o valor de $\theta$ que maximiza $L(\theta)$, utiliza-se a derivada do logaritmo de base neperiana da verossimilhança igualada a zero:
+
+$$
+\frac{\partial \ln [L(\theta)]}{\partial \theta} = 0.
+$$
+
+\noindent A solução dessa equação fornece o valor de $\theta$ que maximiza $\ln [L(\theta)]$, e consequentemente, $L(\theta)$.
+
+#### Método Iterativo de Newton-Raphson {#sec-NewtonRaphson}
+
+Para algumas distribuições, apresentadas na seção anterior, e outras denifidas na literatura, não há forma analítica para as estimativas de máxima verossimilhança. Assim, as estimativas de tais parâmetros depende de métodos numéricos, sendo o **Método Iterativo de Newton-Raphson** uma abordagem amplamente utilizada.
+
+O Método de Newton-Raphson é um procedimento iterativo eficiente para resolver equações não lineares, muito empregado na estimação de parâmetros de modelos estatísticos. No ajuste de distribuições o método busca maximizar a função de verossimilhança resolvendo o sistema de equações derivado das condições de otimalidade (gradiente nulo). A fórmula iterativa é:
+
+$$
+\theta_{n+1} = \theta_{n} - \mathbf{H}^{-1}(\theta_{n}) \nabla \ln[L(\theta_{n})],
+$$ {#eq-NewtonRaphson}
+
+\noindent onde:
+
+-   $\theta_{n}$ é o vetor de parâmetros estimados na iteração $n$;
+-   $\ln[L(\theta_{n})]$ é o vetor gradiente, contendo as derivadas parciais de $\ln[L(\theta_{n})]$ em relação as coordenadas do vetor $\theta$ (parâmetros);
+-   $\mathbf{H}(\theta)$ é a matriz Hessiana, composta pelas segundas derivadas de $\ln[L(\theta_{n})]$.
+
+O método apresenta vantagens convenientes no ajuste de parâmetros de modelos estatísticos. Uma das vantagens é a *eficiência* do método, que apresenta convergência rápida quando o ponto inicial $\theta_{0}$ está próximo dos valores reais dos parâmetros. Outra vantagem, é *flexibilidade*, pois pode ser aplicado a diversos modelos probabilísticos, como o modelo Weibull, que é amplamente utilizada para modelar tempos de vida e dados de sobrevivência.
+
+Entretanto, deve-se, também, atentar-se aos cuidados na aplicação do método. Pois, a *convergência* do método não é garantida caso o ponto inicial esteja muito distante da solução ou se as condições de regularidade do modelo não forem atendidas. Outro ponto que merece atenção é o cálculo da *matriz Hessiana*, que pode ser computacionalmente custoso, especialmente em modelos com maior complexidade.
+
+Para um melhor entendimento do Método Iterativo de Newton-Raphson veja o Apêndice (D) do livro *Análise de Sobrevivência Aplicada* de @colosimo2006analise.
+
+## Modelos de Tempo de Vida Acelerados
+
+Na seção anterior, foram apresentados modelos paramétricos para dados de sobrevivência. Entretanto, esses modelos não contemplam a inclusão de covariáveis na análise do tempo de sobrevivência. Neste capítulo, exploraremos esse método.
+
+No modelo de regressão linear clássico, a relação entre a variável resposta $Y$ e as covariáveis $\mathbf{x^{\intercal}}$ é aditiva, ou seja, mudanças nas covariáveis alteram $Y$ de maneira linear. O modelo de regressão linear clássico é expresso como:
+
+$$
+Y = \beta_{0} + \beta_{1} X_{1} + \beta_{2} X_{2} + \ldots + \beta_{p} X_{p} + \varepsilon,
+$$ {#eq-LinearModel}
+
+\noindent onde $\varepsilon$ é a parte estocástica (erro) que segue uma distribuição $\text{Normal}(0; \sigma^{2})$.
+
+No entanto, em análise de sobrevivência, essa suposição não se sustenta, pois o efeito das covariáveis geralmente acelera ou retarda o tempo de falha, tornando necessária uma abordagem multiplicativa. Este modelo de regressão é chamado de Modelo de *Tempo de Vida Acelerado* (Accelerated Failure Time - AFT).
+
+No modelo AFT, assume-se que o tempo de falha $T$ é afetado por um fator de aceleração exponencial das covariáveis. Esse fator multiplicativo indica se o tempo até o evento será prolongado ou encurtado. Assim, o modelo é definido como:
+
+$$
+T = \exp\{ \mathbf{x^{\intercal}} \boldsymbol{\beta} \} \varepsilon = \exp\{ \beta_{0} + \beta_{1} X_{1} + \beta_{2} X_{2} \ldots + \beta_{p} X_{p} \} \varepsilon,
+$$ {#eq-RelationAFT}
+
+\noindent onde $\varepsilon$ é um termo de erro multiplicativo que captura a variabilidade não explicada pelas covariáveis. Aplicando a transformação logarítmica em $T$ obtém-se a forma linearizável da @eq-RelationAFT que aproxima-se da @eq-LinearModel, de forma que
+
+$$
+\ln[T] = \beta_{0} + \beta_{1} X_{1} + \beta_{2} X_{2} \ldots + \beta_{p} X_{p} + v,
+$$
+
+\noindent onde $v = \ln[\varepsilon]$ segue uma distribuição de valor extremo. Essa escolha para a distribuição dos erros decorre do fato de que os tempos de sobrevivência frequentemente apresentam forte assimetria à direita. Portanto, os erros não podem ser adequadamente representados por uma distribuição normal, sendo mais apropriado assumir distribuições como Log-normal, Weibull ou Exponencial.
+
+Nos modelos AFT, a função de sobrevivência sofre um ajuste devido ao efeito das covariáveis, que podem acelerar ou retardar o tempo de falha. Assim, a função de sobrevivência condicional às covariáveis é expressa como:
+
+$$
+S (t | \mathbf{x}) = P (T > t / \exp\{ \mathbf{x^{\intercal}} \boldsymbol{\beta}\}).
+$$ {#eq-fSobrAFT}
+
+Como o tempo de falha é ajustado pelo fator de aceleração, a função de risco também precisa ser reformulada para incorporar o efeito das covariáveis. A forma geral da função de risco em modelos AFT é dada por:
+
+$$
+\lambda(t | \mathbf{x}) = \lambda_{0}(t) g(\mathbf{x}).
+$$ {#eq-fhazardAFT}
+
+Nesta expressão, $\lambda_{0}(t)$, representa a função de risco basal, isto é, representa o risco no tempo $t$ quando todas as covariáveis são iguais a zero, ou seja, na ausência de efeitos das covariáveis. Já o termo $g(\mathbf{x}) = \exp\{ - \mathbf{x^{\intercal}} \boldsymbol{\beta}\}$ age como um fator de ajuste, mensurando o impacto das covariáveis na taxa de falha.
+
+## Censura Intervalar
+
+### O Estimador de Turnbull
+
+### Estimação de Parâmetros
+
+```{=latex}
+% Saltar p/ próxima página
+\newpage
+```
+
+# Referências {.unnumbered}
+
+::: {#refs}
+:::

@@ -1,0 +1,72 @@
+https://vitalflux.com/aic-vs-bic-for-regression-models-formula-examples/
+
+
+
+
+time.grid.interval <- function(li=li, ri=ri, type=type, bmax=bmax)
+{
+  # Função que retorna os intervalos da partição mais fina
+  # baseada nos limites observados, distintos e finitos.
+  # Argumentos:
+  # li: limite inferior dos intervalos observados.
+  # ri: limite superior dos intervalos observados.
+  # bmax: numero máximo de intervalos.
+  
+  #--- Inicio da função:
+  
+  #-- Construir uma grade tipo 1:
+  if(type=="OBS")
+  {
+    #grid.vet <- sort(unique(c(0, li, ri, Inf)))
+    grid.vet <- sort(unique(c(0, li, is.finite(ri), Inf)))
+    grid.size.vet <- length(grid.vet) # Grid time size
+    
+    if( isTRUE(bmax<grid.size.vet)==TRUE )
+    {
+      k        <- round((length(grid.vet)-1)/bmax,0)
+      id.grid  <- round(seq(k,(length(grid.vet)-1), length.out=bmax),0)
+      grid.vet <- c(0,grid.vet[-1][id.grid])
+      return(grid.vet)
+    }else{
+      grid.vet <- sort(unique(c(0, li, ri, Inf)))
+      return(grid.vet)
+    }
+  }
+  if(type=="EQUI")
+  {
+    grade.vet <- seq(0, max(ri[ri!=Inf]), length.out=bmax)
+    grid.vet <- c(grade.vet,Inf)
+    return(grid.vet)
+  }
+}
+
+
+# Para o Tempo de Falha não Censurado
+surv.interval <- function(L, R, x.cov, coeffs.par, cuts.points, rates.par) {
+  # Preditor linear
+  effect <- x.cov %*% coeffs.par
+  
+  # Contribuição para Função Verossimilhança
+  surv.L <- 1 - ppch(q = L/exp(effect), cuts = cuts.points, levels = rates.par)
+  surv.R <- 1 - ppch(q = R/exp(effect), cuts = cuts.points, levels = rates.par)
+  return(surv.L - surv.R)
+}
+# Para o Tempo de Falha Censurado
+surv.cens <- function(L, x.cov, coeffs.par, cuts.points, rates.par, power.par) {
+  # Preditor Linear
+  effect <- x.cov %*% coeffs.par
+  
+  # Contribuição para Função Verossimilhança
+  surv.L <- 1 - ppch(q = L/exp(effect), cuts = cuts.points, levels = rates.par)
+  return(surv.L)
+}
+
+
+
+
+  S1 <- surv.interval(L=L, R=R, x.cov=X, coeffs.par=coeffs.par,
+                      cuts.points=cuts.points, rates.par=rates.par,
+                      power.par=power.par)
+  S2 <- surv.cens(L=L, x.cov=X, coeffs.par=coeffs.par,
+                  cuts.points=cuts.points, rates.par=rates.par,
+                  power.par=power.par)

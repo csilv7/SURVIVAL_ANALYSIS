@@ -21,7 +21,7 @@ book:
   downloads: [pdf, docx]
   sharing: [twitter, facebook]
   page-navigation: true
-  repo-url: https://github.com/csilv7/ANALISE_DE_SOBREVIVENCIA
+  repo-url: https://github.com/csilv7/SURVIVAL_ANALYSIS
 
   chapters:
     - index.qmd
@@ -68,5 +68,10 @@ format:
     citation-package: natbib
   docx:
     number-sections: true
+    toc: true
+    toc-title: "Sumário"
+    echo: false
+    warning: false
+    message: false
 
 lang: pt

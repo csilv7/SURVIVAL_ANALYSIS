@@ -1,0 +1,41 @@
+---
+format: 
+  pdf:
+    pdf-engine: xelatex
+    documentclass: article
+    number-sections: True
+    papersize: a4
+    fontsize: 11pt
+    indent: True
+    header-includes: |
+      \input{EMR_preambule.tex}
+
+bibliography: EMR_references.bib
+dpi: 600
+lang: pt
+---
+
+```{=latex}
+\begin{center}
+\Large{\textbf{Modelo Exponencial por Partes e extensões via Modelo de Tempo de Vida Acelerado: Uma aplicação a Dados de Câncer de Mama}}
+\end{center}
+
+\begin{center}
+    Breno Cauã Rodrigues da Silva
+    \footnote[1]{Faculdade de Estatística, Universidade Federal do Pará - breno.silva@icen.ufpa.br}
+
+    Paulo Cerqueira do Santos Junior
+    \footnote[2]{Faculdade de Estatística, Universidade Federal do Pará - cerqueirajr@ufpa.br}
+
+    \vspace{0.5cm}
+    \large{\textbf{Resumo}}
+\end{center}
+
+\noindent A análise de sobrevivência desempenha papel central em estudos clínicos, especialmente quando os dados estão sujeitos à censura intervalar — situação em que o tempo exato do evento é desconhecido, mas sabe-se que ocorreu dentro de um intervalo de tempo. Nesse contexto, os Modelos de Tempo de Vida Acelerado (AFT) oferecem uma alternativa eficaz e interpretável para investigar o efeito de covariáveis sobre o tempo até a ocorrência do evento. Este estudo avalia o desempenho de duas extensões paramétricas do modelo AFT sob censura intervalar: o Modelo Exponencial por Partes (MEP) e o Modelo Exponencial por Partes Potência (MEPP), que relaxam a suposição de risco constante da exponencial clássica, permitindo variação da função de risco entre partições do tempo. Utilizou-se um conjunto de dados reais sobre recidiva tumoral em pacientes com câncer de mama submetidas a diferentes tratamentos (Colosimo \& Giolo, 2006), com variável resposta observada de forma intervalar. Os parâmetros foram estimados por máxima verossimilhança, com otimização numérica. O número de partições variou entre 2 e 15, permitindo explorar diferentes níveis de complexidade. A comparação entre os modelos baseou-se nos Critérios de Informação de Akaike (AIC) e Bayesiano (BIC), dada a ausência de métodos consolidados para diagnóstico por resíduos nesse tipo de modelagem. Os resultados apontaram melhor desempenho do MEP, com menores valores de AIC e BIC na maioria dos cenários. O número ótimo de partições foi 2 ($\text{AIC} = -285,54$; $\text{BIC} = -277,91$), indicando que o modelo mais simples apresentou o melhor ajuste. O estudo reforça a aplicabilidade dos modelos AFT sob censura intervalar e evidencia o potencial dos modelos Piecewise Constant Hazards (Risco Constante por Partes), em especial o MEP, como ferramenta robusta e flexível para análise de dados de sobrevivência.
+
+\vspace{0.5cm}
+\noindent \textbf{Palavras-chave:} Análise de Sobrevivência; Modelos AFT; Censura Intervalar; Exponencial por Partes; Critérios de Informação de Akaike e Bayesiano.
+```
+
+::: {#refs}
+:::
