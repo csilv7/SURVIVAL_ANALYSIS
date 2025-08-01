@@ -1,0 +1,18 @@
+:::: progress
+:::: {.progress-bar style="width: 100%;"}
+::::
+::::
+
+# Prefácio {.unnumbered}
+
+```{=latex}
+\begin{center}
+    \listoftables  % Lista de Tabelas
+    \listoffigures % Lista de Figuras
+\end{center}
+```
+
+:::: progress
+:::: {.progress-bar style="width: 100%;"}
+::::
+::::

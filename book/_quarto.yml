@@ -1,0 +1,72 @@
+project:
+  type: book
+  output-dir: C:/Users/user/Documents/PROJETOS/R/ANÁLISE DE SOBREVIVÊNCIA/docs
+
+book:
+  title: "ANÁLISE DE SOBREVIVÊNCIA"
+  subtitle: "COM R"
+  description: "Uma Introdução à Análise Sobrevivência com R"
+
+  author:
+  - name: "Breno Cauã Rodrigues da Silva"
+    orcid: 0009-0005-9740-2069
+    github: csilv7
+    affiliations:
+      - name: "Universidade Federal do Pará"
+      - name: "Instituto de Ciências Exatas e Naturais"
+      - name: "Falculdade de Estatística"
+  - name: "Prof Dr Paulo Cerqueira dos Santos Jr"
+    orcid: 0000-0002-6310-5040
+
+  downloads: [pdf, docx]
+  sharing: [twitter, facebook]
+  page-navigation: true
+  repo-url: https://github.com/csilv7/ANALISE_DE_SOBREVIVENCIA
+
+  chapters:
+    - index.qmd
+    - CI_BASIC_FUND.qmd
+    - CII_NON_PARAM_TECH.qmd
+    - CIII_PARAM_TECH.qmd
+    - CIV_AFT.qmd
+    - CV_CENS_INTERVAL.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    df-print: paged
+    number-sections: true
+    code-fold: true
+    code-tools: true
+    code-link: true
+    toc-location: right
+    toc-title: "Sumário"
+    theme:
+      - cosmo
+      - brand
+    warning: false
+    message: false
+  pdf:
+    documentclass: scrreprt
+    pdf-engine: xelatex
+    toc: true
+    toc-title: "Sumário"
+    number-sections: true
+    fig-pos: "H"
+    indent: true
+    header-includes: |
+      \usepackage{indentfirst}
+      \usepackage{latexsym, amssymb, amsmath, amsfonts}
+    papersize: a4
+    fontsize: 12pt
+    geometry: [left=2.5cm, top=2.5cm, right=2.5cm, bottom=2.5cm]
+    echo: false
+    warning: false
+    message: false
+    citation-package: natbib
+  docx:
+    number-sections: true
+
+lang: pt

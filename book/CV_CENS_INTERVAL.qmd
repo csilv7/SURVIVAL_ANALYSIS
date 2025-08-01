@@ -1,0 +1,15 @@
+:::: progress
+:::: {.progress-bar style="width: 100%;"}
+::::
+::::
+
+# Censura Intervalar
+
+## O Estimador de Turnbull
+
+## Estimação de Parâmetros
+
+:::: progress
+:::: {.progress-bar style="width: 100%;"}
+::::
+::::

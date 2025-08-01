@@ -1,0 +1,51 @@
+:::: progress
+:::: {.progress-bar style="width: 100%;"}
+::::
+::::
+
+# Modelos de Tempo de Vida Acelerados
+
+Na seção anterior, foram apresentados modelos paramétricos para dados de sobrevivência. Entretanto, esses modelos não contemplam a inclusão de covariáveis na análise do tempo de sobrevivência. Neste capítulo, exploraremos esse método.
+
+No modelo de regressão linear clássico, a relação entre a variável resposta $Y$ e as covariáveis $\mathbf{x^{\intercal}}$ é aditiva, ou seja, mudanças nas covariáveis alteram $Y$ de maneira linear. O modelo de regressão linear clássico é expresso como:
+
+$$
+Y = \beta_{0} + \beta_{1} X_{1} + \beta_{2} X_{2} + \ldots + \beta_{p} X_{p} + \varepsilon,
+$$ {#eq-LinearModel}
+
+\noindent onde $\varepsilon$ é a parte estocástica (erro) que segue uma distribuição $\text{Normal}(0; \sigma^{2})$.
+
+No entanto, em análise de sobrevivência, essa suposição não se sustenta, pois o efeito das covariáveis geralmente acelera ou retarda o tempo de falha, tornando necessária uma abordagem multiplicativa. Este modelo de regressão é chamado de Modelo de *Tempo de Vida Acelerado* (Accelerated Failure Time - AFT).
+
+No modelo AFT, assume-se que o tempo de falha $T$ é afetado por um fator de aceleração exponencial das covariáveis. Esse fator multiplicativo indica se o tempo até o evento será prolongado ou encurtado. Assim, o modelo é definido como:
+
+$$
+T = \exp\{ \mathbf{x^{\intercal}} \boldsymbol{\beta} \} \varepsilon = \exp\{ \beta_{0} + \beta_{1} X_{1} + \beta_{2} X_{2} \ldots + \beta_{p} X_{p} \} \varepsilon,
+$$ {#eq-RelationAFT}
+
+\noindent onde $\varepsilon$ é um termo de erro multiplicativo que captura a variabilidade não explicada pelas covariáveis. Aplicando a transformação logarítmica em $T$ obtém-se a forma linearizável da @eq-RelationAFT que aproxima-se da @eq-LinearModel, de forma que
+
+$$
+\ln[T] = \beta_{0} + \beta_{1} X_{1} + \beta_{2} X_{2} \ldots + \beta_{p} X_{p} + v,
+$$
+
+\noindent onde $v = \ln[\varepsilon]$ segue uma distribuição de valor extremo. Essa escolha para a distribuição dos erros decorre do fato de que os tempos de sobrevivência frequentemente apresentam forte assimetria à direita. Portanto, os erros não podem ser adequadamente representados por uma distribuição normal, sendo mais apropriado assumir distribuições como Log-normal, Weibull ou Exponencial.
+
+Nos modelos AFT, a função de sobrevivência sofre um ajuste devido ao efeito das covariáveis, que podem acelerar ou retardar o tempo de falha. Assim, a função de sobrevivência condicional às covariáveis é expressa como:
+
+$$
+S (t | \mathbf{x}) = P (T > t / \exp\{ \mathbf{x^{\intercal}} \boldsymbol{\beta}\}).
+$$ {#eq-fSobrAFT}
+
+Como o tempo de falha é ajustado pelo fator de aceleração, a função de risco também precisa ser reformulada para incorporar o efeito das covariáveis. A forma geral da função de risco em modelos AFT é dada por:
+
+$$
+\lambda(t | \mathbf{x}) = \lambda_{0}(t) g(\mathbf{x}).
+$$ {#eq-fhazardAFT}
+
+Nesta expressão, $\lambda_{0}(t)$, representa a função de risco basal, isto é, representa o risco no tempo $t$ quando todas as covariáveis são iguais a zero, ou seja, na ausência de efeitos das covariáveis. Já o termo $g(\mathbf{x}) = \exp\{ - \mathbf{x^{\intercal}} \boldsymbol{\beta}\}$ age como um fator de ajuste, mensurando o impacto das covariáveis na taxa de falha.
+
+:::: progress
+:::: {.progress-bar style="width: 100%;"}
+::::
+::::

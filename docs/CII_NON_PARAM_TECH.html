@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt" xml:lang="pt"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Uma Introdução à Análise Sobrevivência com R">
+
+<title>2&nbsp; Técnicas Não Paramétricas – ANÁLISE DE SOBREVIVÊNCIA</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./CIII_PARAM_TECH.html" rel="next">
+<link href="./CI_BASIC_FUND.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-364982630eef5352dd1537128a8ed5cb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Nenhum resultado",
+    "search-matching-documents-text": "documentos correspondentes",
+    "search-copy-link-title": "Copiar link para a busca",
+    "search-hide-matches-text": "Esconder correspondências adicionais",
+    "search-more-match-text": "mais correspondência neste documento",
+    "search-more-matches-text": "mais correspondências neste documento",
+    "search-clear-button-title": "Limpar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Procurar"
+  }
+}</script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./CII_NON_PARAM_TECH.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Técnicas Não Paramétricas</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Procurar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">ANÁLISE DE SOBREVIVÊNCIA</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="https://github.com/csilv7/ANALISE_DE_SOBREVIVENCIA" title="Código fonte" class="quarto-navigation-tool px-1" aria-label="Código fonte"><i class="bi bi-github"></i></a>
+    <div class="dropdown">
+      <a href="" title="Download" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label="Download"><i class="bi bi-download"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="./ANÁLISE-DE-SOBREVIVÊNCIA.pdf">
+              <i class="bi bi-file-pdf pe-1"></i>
+            Download PDF
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="./ANÁLISE-DE-SOBREVIVÊNCIA.docx">
+              <i class="bi bi-file-word pe-1"></i>
+            Download Docx
+            </a>
+          </li>
+      </ul>
+    </div>
+    <div class="dropdown">
+      <a href="" title="Share" id="quarto-navigation-tool-dropdown-1" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label="Share"><i class="bi bi-share"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-1">
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="https://twitter.com/intent/tweet?url=|url|">
+              <i class="bi bi-twitter pe-1"></i>
+            Twitter
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="https://www.facebook.com/sharer/sharer.php?u=|url|">
+              <i class="bi bi-facebook pe-1"></i>
+            Facebook
+            </a>
+          </li>
+      </ul>
+    </div>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Procurar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefácio</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./CI_BASIC_FUND.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Conceitos Básicos e Exemplos</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./CII_NON_PARAM_TECH.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Técnicas Não Paramétricas</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./CIII_PARAM_TECH.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Técnicas Paramétricas</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./CIV_AFT.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Modelos de Tempo de Vida Acelerados</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./CV_CENS_INTERVAL.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Censura Intervalar</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Referências</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sumário</h2>
+   
+  <ul>
+  <li><a href="#o-estimador-de-kaplan-meier" id="toc-o-estimador-de-kaplan-meier" class="nav-link active" data-scroll-target="#o-estimador-de-kaplan-meier"><span class="header-section-number">2.1</span> O Estimador de Kaplan-Meier</a>
+  <ul class="collapse">
+  <li><a href="#propriedades-do-estimador-de-kaplan-meier" id="toc-propriedades-do-estimador-de-kaplan-meier" class="nav-link" data-scroll-target="#propriedades-do-estimador-de-kaplan-meier"><span class="header-section-number">2.1.1</span> Propriedades do Estimador de Kaplan-Meier</a></li>
+  <li><a href="#variância-do-estimador-de-kaplan-meier" id="toc-variância-do-estimador-de-kaplan-meier" class="nav-link" data-scroll-target="#variância-do-estimador-de-kaplan-meier"><span class="header-section-number">2.1.2</span> Variância do Estimador de Kaplan-Meier</a></li>
+  </ul></li>
+  <li><a href="#outros-estimadores-não-parâmetricos" id="toc-outros-estimadores-não-parâmetricos" class="nav-link" data-scroll-target="#outros-estimadores-não-parâmetricos"><span class="header-section-number">2.2</span> Outros Estimadores Não Parâmetricos</a>
+  <ul class="collapse">
+  <li><a href="#estimador-de-nelson-aalen" id="toc-estimador-de-nelson-aalen" class="nav-link" data-scroll-target="#estimador-de-nelson-aalen"><span class="header-section-number">2.2.1</span> Estimador de Nelson-Aalen</a></li>
+  </ul></li>
+  <li><a href="#comparação-de-curvas-de-sobrevivência" id="toc-comparação-de-curvas-de-sobrevivência" class="nav-link" data-scroll-target="#comparação-de-curvas-de-sobrevivência"><span class="header-section-number">2.3</span> Comparação de Curvas de Sobrevivência</a>
+  <ul class="collapse">
+  <li><a href="#outros-testes" id="toc-outros-testes" class="nav-link" data-scroll-target="#outros-testes"><span class="header-section-number">2.3.1</span> Outros Testes</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Técnicas Não Paramétricas</span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Código</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Mostrar o código</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Esconder o código</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">Ver o código fonte</a></li></ul></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="progress">
+<div class="progress-bar" style="width: 100%;">
+
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">OutDec =</span> <span class="st">","</span>, <span class="at">digits =</span> <span class="dv">4</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"https://docs.ufpr.br/~giolo/asa/dados/leucemia.txt"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>dados <span class="ot">&lt;-</span> <span class="fu">read.table</span>(url, <span class="at">header =</span> <span class="cn">TRUE</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>As técnicas não paramétricas desempenham um importante papel na análise de sobrevivência, pois permitem a estimativa da função de sobrevivência sem a necessidade de pressupor uma distribuição específica dos tempos até a ocorrência do evento de interesse. Essa abordagem é especialmente útil em estudos onde a distribuição dos tempos de falha é desconhecida ou onde se deseja evitar suposições rígidas sobre sua forma.</p>
+<p>Diferentemente dos métodos paramétricos, que assumem distribuições predefinidas (como Weibull ou exponencial), as técnicas não paramétricas operam apenas com a ordenação dos eventos observados, tornando-se mais flexíveis e robustas e particularmente úteis na presença de dados censurados.</p>
+<section id="o-estimador-de-kaplan-meier" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="o-estimador-de-kaplan-meier"><span class="header-section-number">2.1</span> O Estimador de Kaplan-Meier</h2>
+<p>Proposto por <span class="citation" data-cites="kaplan1958nonparametric">Kaplan e Meier (<a href="references.html#ref-kaplan1958nonparametric" role="doc-biblioref">1958</a>)</span>. É um estimador não paramétrico utilizado para estimar a função de sobrevivência. Tal estimador também é chamado de de <em>estimador limite-produto</em>. O Estimador de Kaplan-Meier é uma adaptação a <span class="math inline">\(S\left(t\right)\)</span> empiríca que, na ausência de censura nos dados, é definida como:</p>
+<p><span class="math display">\[
+\hat{S}\left(t\right) = \dfrac{\text{nº de observações que não falharam até o tempo } t}{\text{nº total de observações no estudo}}.
+\]</span></p>
+<p><span class="math inline">\(\hat{S}\left(t\right)\)</span> é uma função que tem um formato gráfico de escada com degraus nos tempos observados de falha de tamanho <span class="math inline">\(1/n\)</span>, onde <span class="math inline">\(n\)</span> é o tamanho amostral.</p>
+<p>O processo utilizado até se obter a estimativa de Kaplan-Meier é um processo passo a passo, em que o próximo passo depende do anterior. De forma suscetível, para qualquer <span class="math inline">\(t\)</span>, <span class="math inline">\(S\left(t\right)\)</span> pode ser escrito em termos de probabilidades condicionais. Suponha que existam <span class="math inline">\(n\)</span> pacientes no estudo e <span class="math inline">\(k \left(\leq n\right)\)</span> falhas distintas nos tempos <span class="math inline">\(t_{1} \leq t_{2} \leq \cdots \leq t_{k}\)</span>. Considerando <span class="math inline">\(S\left(t\right)\)</span> uma função discreta com probabilidade maior que zero somente nos tempos de falha <span class="math inline">\(t_{j}\)</span>, <span class="math inline">\(j = 1, \cdots, k\)</span>, tem-se que:</p>
+<p><span id="eq-DecomposeSt"><span class="math display">\[
+S\left(t_{j}\right) = \left(1 - q_{1}\right) \left(1 - q_{2}\right) \cdots \left(1 - q_{j}\right),
+\tag{2.1}\]</span></span></p>
+<p>em que <span class="math inline">\(q_{j}\)</span> é a probabilidade de um indivíduo morrer no intervalo <span class="math inline">\(\left[t_{j-1}, t{j}\right)\)</span> sabendo que ele não morreu até <span class="math inline">\(t_{j-1}\)</span> e considerando <span class="math inline">\(t_{0} = 0\)</span>. Ou seja, pode se escrever <span class="math inline">\(q_{j}\)</span> como:</p>
+<p><span id="eq-FormProbQj"><span class="math display">\[
+q_{j} = P\left(T \in \left[t_{j-1}, t_{j}\right) | T \geq t_{j-1}\right),
+\tag{2.2}\]</span></span></p>
+<p>para <span class="math inline">\(j = 1, \cdots, k\)</span>. A expressão geral do estimador de Kaplan-Meier pode ser apresentada após estas considerações preliminares. Considere:</p>
+<ul>
+<li><span class="math inline">\(t_{1} \leq t_{2} \leq \cdots \leq t_{k}\)</span> os <span class="math inline">\(k\)</span> tempos distintos e ordenados de falha;</li>
+<li><span class="math inline">\(d_{j}\)</span> o número de falhas em <span class="math inline">\(t_{j}\)</span>, com <span class="math inline">\(j = 1, \cdots, k\)</span>;</li>
+<li><span class="math inline">\(n_{j}\)</span> o número de indivíduos sob risco em <span class="math inline">\(t_{j}\)</span>, ou seja, os indivíduos que não falharam e não foram censurados até o instante imediatamente anterior a <span class="math inline">\(t_{j}\)</span>.</li>
+</ul>
+<p>Com isso, pode-se definir o estimador de Kaplan-Meier como:</p>
+<p><span id="eq-ESTKaplanMeier"><span class="math display">\[
+\hat{S}_{KM}\left(t\right) = \prod_{j \text{ : } t_{j} &lt; t} \left( \dfrac{n_{j} - d_{j}}{n_{j}} \right) = \prod_{j \text{ : } t_{j} &lt; t} \left(1 - \dfrac{d_{j}}{n_{j}} \right)
+\tag{2.3}\]</span></span></p>
+<p>De forma intuitiva, por assim dizer, a <a href="#eq-ESTKaplanMeier" class="quarto-xref">Equação&nbsp;<span>2.3</span></a> é proveniente da <a href="#eq-DecomposeSt" class="quarto-xref">Equação&nbsp;<span>2.1</span></a>, sendo está, uma decomposição de <span class="math inline">\(S\left(t\right)\)</span> em termos <span class="math inline">\(q_{j}\)</span>’s. Assim, a <a href="#eq-ESTKaplanMeier" class="quarto-xref">Equação&nbsp;<span>2.3</span></a> é justificada se os <span class="math inline">\(q_{j}\)</span>’s forem estimados por <span class="math inline">\(d_{j}/n_{j}\)</span>, expresso em termos de probabilidade na <a href="#eq-FormProbQj" class="quarto-xref">Equação&nbsp;<span>2.2</span></a>. No artigo original de 1958, Kaplan e Meier provam que a <a href="#eq-ESTKaplanMeier" class="quarto-xref">Equação&nbsp;<span>2.3</span></a> é um <em>Estimador de Máxima Verossimilhança</em> (EMV) para <span class="math inline">\(S\left(t\right)\)</span>. Seguindo certos passos, é possível provar que que <span class="math inline">\(\hat{S}_{KM}\left(t\right)\)</span> é EMV de <span class="math inline">\(S\left(t\right)\)</span>. Supondo que <span class="math inline">\(d_{j}\)</span> observações falham no tempo tempo <span class="math inline">\(t_{j}\)</span>, para <span class="math inline">\(j = 1, \cdots, k\)</span>, e <span class="math inline">\(m_{j}\)</span> observações são censuradas no intervalo <span class="math inline">\(\left[t_{j}, t_{j+1}\right)\)</span>, nos tempos <span class="math inline">\(t_{j1}, \ldots, t_{jm_{j}}\)</span>. A probabilidade de falha no tempo <span class="math inline">\(t_{j}\)</span> é, então,</p>
+<p><span class="math display">\[
+S\left(t_{j}\right) - S\left(t_{j}+\right),
+\]</span></p>
+<p>com <span class="math inline">\(S\left(t_{j}+\right) = \lim_{\Delta t \to 0+} S\left(t_{j} + \Delta t\right)\)</span>, <span class="math inline">\(j = 1, \cdots, k\)</span>. Por outro lado, a contribuição para a função de verossimilhança de um tempo de sobrevivência censurado em <span class="math inline">\(t_{jl}\)</span> para <span class="math inline">\(l = 1, \ldots, m_{j}\)</span>, é:</p>
+<p><span class="math display">\[
+P\left(T &gt; t_{jl}\right) = S\left(t_{jl}+\right).
+\]</span></p>
+<p>A função de verossimilhança pode, então, ser escrita como:</p>
+<p><span class="math display">\[
+L\left(S\left(\cdot\right)\right) = \prod_{j = 0}^{k} \left\{ \left[ S\left(t_{j}\right) - S\left(t_{j}+\right) \right]^{d_{j}} \prod_{l=1}^{m_{j}} S\left(t_{jl}+\right) \right\}
+\]</span></p>
+<p>Com isso, é possível provar que <span class="math inline">\(S\left(t\right)\)</span> que maximiza <span class="math inline">\(L\left(S\left(\cdot\right)\right)\)</span> é exatamente a expressão dada pela <a href="#eq-ESTKaplanMeier" class="quarto-xref">Equação&nbsp;<span>2.3</span></a>.</p>
+<section id="propriedades-do-estimador-de-kaplan-meier" class="level3" data-number="2.1.1">
+<h3 data-number="2.1.1" class="anchored" data-anchor-id="propriedades-do-estimador-de-kaplan-meier"><span class="header-section-number">2.1.1</span> Propriedades do Estimador de Kaplan-Meier</h3>
+<p>Como um estimador de máxima verossimilhança, o estimador de Kaplan-Meier têm interessantes propriedades. As principais são:</p>
+<ul>
+<li>É não-viciado para grandes amostras;</li>
+<li>É fracamente consistente;</li>
+<li>Converge assintoticamente para um processo gaussiano.</li>
+</ul>
+<p>A consistência e normalidade assintótica de <span class="math inline">\(\hat{S}_{KM}\left(t\right)\)</span> foram provadas sob certas condições de regularidade, por <span class="citation" data-cites="breslow1974large">Breslow e Crowley (<a href="references.html#ref-breslow1974large" role="doc-biblioref">1974</a>)</span> e <span class="citation" data-cites="meier1975estimation">Meier (<a href="references.html#ref-meier1975estimation" role="doc-biblioref">1975</a>)</span>.</p>
+</section>
+<section id="variância-do-estimador-de-kaplan-meier" class="level3" data-number="2.1.2">
+<h3 data-number="2.1.2" class="anchored" data-anchor-id="variância-do-estimador-de-kaplan-meier"><span class="header-section-number">2.1.2</span> Variância do Estimador de Kaplan-Meier</h3>
+<p>Para que se possa construir intervalos de confiança e testar hipóteses para <span class="math inline">\(S\left(t\right)\)</span>, se faz necessário ter conhecimento quanto variabilidade e precisão do estimador de Kaplan-Meier. Este estimador, assim como outros, está sujeito a variações que devem ser descritas em termos de estimações intervalares. A expressão da variância assintótica do estimador de Kaplan-Meier é dada pela <a href="#eq-VarKaplanMeier" class="quarto-xref">Equação&nbsp;<span>2.4</span></a>.</p>
+<p><span id="eq-VarKaplanMeier"><span class="math display">\[
+\widehat{Var}\left[\hat{S}_{KM}\left(t\right)\right] = \left[\hat{S}_{KM}\left(t\right)\right]^{2} \sum_{j \text{ : } t_{j} &lt; t} \dfrac{d_{j}}{n_{j} \left(n_{j} - d_{j}\right)}
+\tag{2.4}\]</span></span></p>
+<p>A expressão dada na <a href="#eq-VarKaplanMeier" class="quarto-xref">Equação&nbsp;<span>2.4</span></a>, é conhecida como fórmula de Greenwood e pode ser obtida a partir de propriedades do estimador de máxima verossimilhança. Os detalhes da obtenção da <a href="#eq-VarKaplanMeier" class="quarto-xref">Equação&nbsp;<span>2.4</span></a> estão disponíveis em <span class="citation" data-cites="kalbfleisch1980statistical">Kalbfleisch e Prentice (<a href="references.html#ref-kalbfleisch1980statistical" role="doc-biblioref">1980</a>)</span>.</p>
+<p>Como <span class="math inline">\(\hat{S}_{KM}\left(t\right)\)</span>, para um <span class="math inline">\(t\)</span> fixo, tem distribuição assintóticamente Normal. O intervalo de confiança com <span class="math inline">\(100\left(1 - \alpha\right)\)</span>% de confiança para <span class="math inline">\(\hat{S}_{KM}\left(t\right)\)</span> é expresso por:</p>
+<p><span class="math display">\[
+\hat{S}_{KM}\left(t\right) \pm z_{\alpha/2} \sqrt{\widehat{Var}\left[\hat{S}_{KM}\left(t\right)\right]}.
+\]</span></p>
+<p>Vale salientar que para valores extremos de <span class="math inline">\(t\)</span>, este intervalo de confiança pode apresentar limites que não condizem com a teoria de probabilidades. Para solucionar tal problema, aplica-se uma transformação em <span class="math inline">\(\hat{S}_{KM}\left(t\right)\)</span> como, por exemplo, <span class="math inline">\(\hat{U}\left(t\right) = \ln\left\{ - \ln\left\{ \hat{S}_{KM}\left(t\right) \right\} \right\}\)</span>. Esta transformação foi sugerida por <span class="citation" data-cites="kalbfleisch1980statistical">Kalbfleisch e Prentice (<a href="references.html#ref-kalbfleisch1980statistical" role="doc-biblioref">1980</a>)</span>, tendo sua variância estimada por:</p>
+<p><span class="math display">\[
+\widehat{Var}\left[\hat{U}\left(t\right)\right] = \dfrac{ \sum_{j:t_{j}&lt;t} \frac{d_{j}}{n_{j}\left(n_{j}-d_{j}\right)} }{ \left[ \sum_{j:t_{j}&lt;t} \ln\left\{ \frac{n_{j}-d_{j}}{n_{j}}\right\} \right]^{2} } = \dfrac{ \sum_{j:t_{j}&lt;t} \frac{d_{j}}{n_{j}\left(n_{j}-d_{j}\right)} }{ \left[\ln\left\{ \hat{S}_{KM}\left(t\right) \right\}\right]^{2} }.
+\]</span></p>
+<p>Logo, pode-se aproximar um intervalo com <span class="math inline">\(100 \left(1 - \alpha\right)\%\)</span> de confiança para <span class="math inline">\(S\left(t\right)\)</span> desta forma:</p>
+<p><span class="math display">\[
+\left[ \hat{S}_{KM}\left(t\right) \right]^{ \exp\left\{ \pm z_{\alpha/2} \sqrt{\widehat{Var}\left[\hat{U}\left(t\right)\right]} \right\} }.
+\]</span></p>
+<p>Veja uma aplicação do estimador de Kaplan-Meier para os dados de <em>Leucemia Pediátrica</em> dispostos no Apêndice (A) do livro <em>Análise de Sobrevivência Aplicada</em> de <span class="citation" data-cites="colosimo2006analise">Colosimo e Giolo (<a href="references.html#ref-colosimo2006analise" role="doc-biblioref">2006</a>)</span>. De posse do conjunto de dados, pode-se estimar a curva de sobrevivência, tal curva foi ilustrada na <a href="#fig-SobrKM" class="quarto-xref">Figura&nbsp;<span>2.1</span></a>.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] KAPLAN-MEIER</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimador de Kaplan-Meier (Pacote survival)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>ekm <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(tempos, cens)<span class="sc">~</span><span class="dv">1</span>, <span class="at">data =</span> dados)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualizar Curva de Sobrevivência (Pacote ggplot2)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> <span class="cn">NULL</span>, <span class="fu">aes</span>(<span class="at">x =</span> ekm<span class="sc">$</span>time, <span class="at">y =</span> ekm<span class="sc">$</span>surv)) <span class="sc">+</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">lwd =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> ekm<span class="sc">$</span>lower, <span class="at">ymax =</span> ekm<span class="sc">$</span>upper), <span class="at">fill =</span> <span class="st">"blue"</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Tempo"</span>, <span class="at">y =</span> <span class="st">"Probabilidade de Sobrevivência"</span>) <span class="sc">+</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-SobrKM" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-SobrKM-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="CII_NON_PARAM_TECH_files/figure-html/fig-SobrKM-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-SobrKM-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2.1: Curva de Sobrevivência de Kaplan-Meier com IC de 95%
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="outros-estimadores-não-parâmetricos" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="outros-estimadores-não-parâmetricos"><span class="header-section-number">2.2</span> Outros Estimadores Não Parâmetricos</h2>
+<p>O estimador de Kaplan-Meier é amplamente utilizado para estimar a função de sobrevivência <span class="math inline">\(S(t)\)</span>. Ele está disponível em diversos pacotes estatísticos e é frequentemente abordado em materiais introdutórios de estatística. No entanto, dois outros estimadores também possuem relevância na literatura: o estimador de Nelson-Aalen e o estimador de Tabela de Vida.</p>
+<p>O estimador de Nelson-Aalen, desenvolvido posteriormente, apresenta similaridades com Kaplan-Meier em termos de propriedades, mas adota uma abordagem diferente ao focar na função risco acumulado <span class="math inline">\(\Lambda(t)\)</span>.</p>
+<p>Já o estimador da Tabela de Vida, também chamado de tabela atuarial, tem um importante valor histórico, sendo amplamente utilizado por demógrafos e atuários desde o século XIX sendo empregado principalmente em grandes amostras. Seu uso é especialmente relevante em contextos demográficos e atuariais, como estudos de expectativa de vida e análise de dados censitários.</p>
+<p>Nesta seção será abordado apenas o estimador de Nelson-Aalen. Para conhecer mais sobre o estimador da Tabela de Vida ou Tabela Atuarial, consulte a Seção 2.4.2 do livro <em>Análise de Sobrevivência Aplicada</em> de <span class="citation" data-cites="colosimo2006analise">Colosimo e Giolo (<a href="references.html#ref-colosimo2006analise" role="doc-biblioref">2006</a>)</span>.</p>
+<section id="estimador-de-nelson-aalen" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="estimador-de-nelson-aalen"><span class="header-section-number">2.2.1</span> Estimador de Nelson-Aalen</h3>
+<p>Mais recente que o estimador de Kaplan-Meier, este estimador se baseia na função de sobrevivência expressa da seguinte forma:</p>
+<p><span class="math display">\[
+S(t) = \exp\left\{ - \Lambda(t) \right\},
+\]</span></p>
+<p>em que <span class="math inline">\(\Lambda(t)\)</span> é a função de risco acumulado apresentada na <a href="CI_BASIC_FUND.html#sec-TaxaAcu" class="quarto-xref"><span>Seção 1.6.3</span></a>.</p>
+<p>A estimativa para <span class="math inline">\(\Lambda(t)\)</span> foi inicialmente proposta por <span class="citation" data-cites="nelson1972theory">Nelson (<a href="references.html#ref-nelson1972theory" role="doc-biblioref">1972</a>)</span> posteriormente retomada por <span class="citation" data-cites="aalen1978nonparametric">Aalen (<a href="references.html#ref-aalen1978nonparametric" role="doc-biblioref">1978</a>)</span> que demonstrou suas propriedades assintóticas utilizando processos de contagem. Na literatura, esse estimador é amplamente conhecido como o estimador de Nelson-Aalen e é definido pela seguinte expressão:</p>
+<p><span id="eq-ESTNelsonAalen"><span class="math display">\[
+\hat{\Lambda}(t) = \sum_{j:t_{j} &lt; t} \left( \dfrac{d_{j}}{n_{j}} \right),
+\tag{2.5}\]</span></span></p>
+<p>onde <span class="math inline">\(d_{j}\)</span> e <span class="math inline">\(n_{j}\)</span> são as mesmas definições usadas no estimador de Kaplan-Meier. A variância do estimador, conforme proposta por <span class="citation" data-cites="aalen1978nonparametric">Aalen (<a href="references.html#ref-aalen1978nonparametric" role="doc-biblioref">1978</a>)</span>, é dada por:</p>
+<p><span id="eq-VarNelsonAalen"><span class="math display">\[
+\widehat{Var}\left[\hat{\Lambda}(t)\right] = \sum_{j:t_{j} &lt; t} \left( \dfrac{d_{j}}{n_{j}^{2}} \right).
+\tag{2.6}\]</span></span></p>
+<p>Uma alternativa para a estimativa da variância de <span class="math inline">\(\hat{\Lambda}(t)\)</span>, proposta por <span class="citation" data-cites="klein1991small">Klein (<a href="references.html#ref-klein1991small" role="doc-biblioref">1991</a>)</span>, é:</p>
+<p><span class="math display">\[
+\widehat{Var}\left[\hat{\Lambda}(t)\right] = \sum_{j:t_{j} &lt; t} \dfrac{(n_{j} - d_{j})d_{j}}{n_{j}^{3}},
+\]</span></p>
+<p>entretanto, o estimador da <a href="#eq-VarNelsonAalen" class="quarto-xref">Equação&nbsp;<span>2.6</span></a> apresenta menor vício, tornando-o mais preferível que o proposto por <span class="citation" data-cites="klein1991small">Klein (<a href="references.html#ref-klein1991small" role="doc-biblioref">1991</a>)</span>.</p>
+<p>Desta forma, podemos definir, com base no estimador de Nelson-Aalen, um estimador para a função de sobrevivência, podendo ser expressa por:</p>
+<p><span class="math display">\[
+\hat{S}_{NA}(t) = \exp\left\{- \hat{\Lambda}(t) \right\}.
+\]</span></p>
+<p>Deve-se, a variância deste estimador, a <span class="citation" data-cites="aalen1978empirical">Aalen e Johansen (<a href="references.html#ref-aalen1978empirical" role="doc-biblioref">1978</a>)</span>. Podendo ser mensurada pela expressão:</p>
+<p><span class="math display">\[
+\widehat{Var}\left[\hat{S}_{NA}(t)\right] = \left[ \hat{S}_{NA}(t) \right]^{2} \sum_{j:t_{j} &lt; t} \left( \dfrac{d_{j}}{n_{j}^{2}} \right).
+\]</span></p>
+<p>Uma aplicação do estimador de Nelson-Aalen foi desenhada na <a href="#fig-ExampleNA" class="quarto-xref">Figura&nbsp;<span>2.2</span></a> em dois subgráficos. O primeiro apresenta a função de risco acumulado <span class="math inline">\(\Lambda(t)\)</span> estimada conforme a <a href="#eq-ESTNelsonAalen" class="quarto-xref">Equação&nbsp;<span>2.5</span></a>. O segundo mostra a curva de sobrevivência de Nelson-Aalen através das relações entre as funções de análise de sobrevivência.</p>
+<div id="fig-ExampleNA" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ExampleNA-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="cell-output-display quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-ExampleNA" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-ExampleNA-1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-ExampleNA-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="CII_NON_PARAM_TECH_files/figure-html/fig-ExampleNA-1.png" class="img-fluid figure-img" data-ref-parent="fig-ExampleNA" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-ExampleNA-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Função Risco Acumulado
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-ExampleNA" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-ExampleNA-2" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-ExampleNA-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="CII_NON_PARAM_TECH_files/figure-html/fig-ExampleNA-2.png" class="img-fluid figure-img" data-ref-parent="fig-ExampleNA" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-ExampleNA-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) Função Sobrevivência
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ExampleNA-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2.2: Função Risco Acumulado e Função Sobrevivência com IC de 95% segundo o Estimador de Nelson-Aalen.
+</figcaption>
+</figure>
+</div>
+<p>Vale destacar que o estimador de Nelson-Aalen apresenta, na maioria dos casos, estimativas próximas ao estimador de Kaplan-Meier. <span class="citation" data-cites="bohoris1994comparison">Bohoris (<a href="references.html#ref-bohoris1994comparison" role="doc-biblioref">1994</a>)</span> mostrou que <span class="math inline">\(\hat{S}_{NA}(t) \geq \hat{S}_{KM}(t)\)</span> para todo <span class="math inline">\(t\)</span>, isto é, as estimativas obtidas pelo estimador de Nelson-Aalen são maiores ou iguais às estimativas obtidas pelo estimador de Kaplan-Meier.</p>
+<div class="cell fig-cap-location-bottom quarto-layout-panel" data-layout-nrow="1">
+<div class="quarto-layout-row">
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 100.0%;justify-content: flex-start;">
+<div id="fig-CompareSurv" class="quarto-float quarto-figure quarto-figure-center anchored" data-cap-location="bottom">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-CompareSurv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="CII_NON_PARAM_TECH_files/figure-html/fig-CompareSurv-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-CompareSurv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2.3: Comparação Entre as Curvas de Sobrevivência de Kaplan-Meier Nelson-Aalen.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="comparação-de-curvas-de-sobrevivência" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="comparação-de-curvas-de-sobrevivência"><span class="header-section-number">2.3</span> Comparação de Curvas de Sobrevivência</h2>
+<p>Considere um problema na área da saúde em que se deseja comparar dois grupos: um que receberá tratamento com uma determinada droga e outro que será o grupo controle. Estatísticas amplamente utilizadas para esse fim podem ser vistas como generalizações, para dados censurados, de testes não paramétricos bem conhecidos. Entre esses, o teste <em>logrank</em> <span class="citation" data-cites="mantel1966evaluation">(<a href="references.html#ref-mantel1966evaluation" role="doc-biblioref">Mantel 1966</a>)</span> é o mais empregado em análises de sobrevivência. <span class="citation" data-cites="gehan1965generalized">Gehan (<a href="references.html#ref-gehan1965generalized" role="doc-biblioref">1965</a>)</span> propôs uma generalização para a estatística de Wilcoxon. Outras generalizações foram introduzidas por autores como <span class="citation" data-cites="peto1972asymptotically">Peto e Peto (<a href="references.html#ref-peto1972asymptotically" role="doc-biblioref">1972</a>)</span> e <span class="citation" data-cites="prentice1978linear">Prentice (<a href="references.html#ref-prentice1978linear" role="doc-biblioref">1978</a>)</span>, enquanto <span class="citation" data-cites="latta1981monte">Latta (<a href="references.html#ref-latta1981monte" role="doc-biblioref">1981</a>)</span> utilizou simulações de Monte Carlo para comparar diversos testes não-paramétricos.</p>
+<p>Nesta seção, será dada ênfase ao teste <em>logrank</em>, amplamente utilizado em análises de sobrevivência e particularmente adequado quando a razão entre as funções de risco dos grupos a serem comparados é aproximadamente constante. Ou seja, quando as populações apresentam a propriedade de riscos proporcionais.</p>
+<p>A estatística do teste <em>logrank</em> baseia-se na diferença entre o número observado de falhas em cada grupo e o número esperado de falhas sob a hipótese nula. Essa abordagem é semelhante à do teste de <span class="citation" data-cites="mantel1959statistical">Mantel e Haenszel (<a href="references.html#ref-mantel1959statistical" role="doc-biblioref">1959</a>)</span>, que combina tabelas de contingência. Além disso, o teste <em>logrank</em> possui a mesma expressão do teste de escore para o modelo de regressão de Cox.</p>
+<p>Considere, inicialmente, o teste de igualdade entre duas funções de sobrevivência <span class="math inline">\(S_{1}(t)\)</span> e <span class="math inline">\(S_{2}(t)\)</span>. Seja <span class="math inline">\(t_{1} &lt; t_{2} &lt; \ldots &lt; t_{k}\)</span> a sequência dos tempos de falha distintos observados na amostra combinada, formada pela união das duas amostras individuais. Suponha que, no tempo <span class="math inline">\(t_{j}\)</span>, ocorram <span class="math inline">\(d_{j}\)</span> falhas e que <span class="math inline">\(n_{j}\)</span> indivíduos estejam sob risco imediatamente antes de <span class="math inline">\(t_{j}\)</span> na amostra combinada. Nas amostras individuais, as quantidades correspondentes são <span class="math inline">\(d_{ij}\)</span> e <span class="math inline">\(n_{ij}\)</span>, onde <span class="math inline">\(i = 1, 2\)</span> representa o grupo e <span class="math inline">\(j = 1, \cdots, k\)</span> indica o tempo de falha.</p>
+<p>No tempo <span class="math inline">\(t_{j}\)</span>, os dados podem ser organizados em uma tabela de contingência <span class="math inline">\(2 \times 2\)</span>, onde <span class="math inline">\(d_{ij}\)</span> representa o número de falhas e <span class="math inline">\(n_{ij} - d_{ij}\)</span> o número de sobreviventes em cada grupo <span class="math inline">\(i\)</span>. Essa disposição está ilustrada na <a href="#tbl-ExampleTableContig" class="quarto-xref">Tabela&nbsp;<span>2.1</span></a>.</p>
+<div class="cell">
+<div id="tbl-ExampleTableContig" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ExampleTableContig-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Tabela&nbsp;2.1: Tabela de contingência gerada no tempo <span class="math inline">\(t_{j}\)</span>.
+</figcaption>
+<div aria-describedby="tbl-ExampleTableContig-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: center;"></th>
+<th style="text-align: center;">Grupo 1</th>
+<th style="text-align: center;">Grupo 2</th>
+<th style="text-align: center;"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Falha</td>
+<td style="text-align: center;"><span class="math inline">\(d_{1j}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(d_{2j}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(d_{j}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Não Falha</td>
+<td style="text-align: center;"><span class="math inline">\(n_{1j} - d_{1j}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(n_{2j} - d_{2j}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(n_{j} - d_{j}\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"></td>
+<td style="text-align: center;"><span class="math inline">\(n_{1j}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(n_{2j}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(n_{j}\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>Condicionado à ocorrência de falhas e censuras até o tempo <span class="math inline">\(t_{j}\)</span> (fixando as marginais das colunas) e ao número total de falhas no tempo <span class="math inline">\(t_{j}\)</span> (fixando as marginais das linhas), a distribuição de <span class="math inline">\(d_{2j}\)</span> é, então, uma hipergeométrica:</p>
+<p><span class="math display">\[
+\dfrac{ \binom{ n_{1j} }{ d_{1j} } \binom{ n_{2j} }{ d_{2j} } }{ \binom{ n_{j} }{ d_{j} } }.
+\]</span></p>
+<p>A média de <span class="math inline">\(d_{2j}\)</span> é dada por <span class="math inline">\(w_{2j} = n_{2j} d_{j} n_{j}^{-1}\)</span>. Isso significa que, na ausência de diferenças entre as duas populações no tempo <span class="math inline">\(t_{j}\)</span>, o número total de falhas (<span class="math inline">\(d_{j}\)</span>) pode ser alocado entre as duas amostras proporcionalmente à razão entre o número de indivíduos sob risco em cada amostra e o número total sob risco.</p>
+<p>A variância de <span class="math inline">\(d_{2j}\)</span> obtida a partir da distribuição hipergeométrica é:</p>
+<p><span class="math display">\[
+(V_{j})_{2} = n_{2j}(n_{j} - n_{2j})d_{j}(n_{j} - d_{j}) n_{j}^{-2} (n_{j} - 1)^{-1}.
+\]</span></p>
+<p>Portanto, a estatística <span class="math inline">\(d_{2j} - w_{2j}\)</span> possui média zero e variância <span class="math inline">\((V_{j})_{2}\)</span>. Se as <span class="math inline">\(k\)</span> tabelas de contingência forem independentes, um teste aproximado para avaliar a igualdade entre as duas funções de sobrevivência pode ser construído com base na seguinte estatística:</p>
+<p><span id="eq-EstTestelogrank"><span class="math display">\[
+T = \dfrac{ \left[ \sum_{j = 1}^{k} (d_{2j} - w_{2j}) \right]^{2} }{ \sum_{j = 1}^{k} (V_{j})_{2} },
+\tag{2.7}\]</span></span></p>
+<p>que, sob a hipótese nula <span class="math inline">\(H_{0}: S_{1}(t) = S_{2}(t)\)</span> para todo <span class="math inline">\(t\)</span> no período de acompanhamento, segue aproximadamente uma distribuição qui-quadrado com <span class="math inline">\(1\)</span> grau de liberdade para amostras grandes.</p>
+<p>Para exemplificar a aplicação do teste de <em>logrank</em> em dados reais, utilizou-se o conjunto de dados sobre Leucemia Pediátrica, disponível no Apêndice (A) do livro <em>Análise de Sobrevivência Aplicada</em> de <span class="citation" data-cites="colosimo2006analise">Colosimo e Giolo (<a href="references.html#ref-colosimo2006analise" role="doc-biblioref">2006</a>)</span>. Esses mesmos dados foram usados para gerar a <a href="#fig-SobrKM" class="quarto-xref">Figura&nbsp;<span>2.1</span></a>. O objetivo do teste realizado foi avaliar se as curvas de sobrevivência das categorias da covariável <code>r6</code> são iguais, com as seguintes hipóteses:</p>
+<p><span class="math display">\[
+\begin{cases}
+  H_{0}: \text{As curvas de sobrevivência dos grupos são iguais ao longo do tempo} \\
+  H_{1}: \text{As curvas de sobrevivência dos grupos são diferentes ao longo do tempo.}
+\end{cases}
+\]</span></p>
+<p>Veja a saída resultante do teste realizado no software R:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># [2] TESTE DE LOG-RANK (Igual de Curvas de Sobrevivência)</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajustando a coluna r_6</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>dados.adj <span class="ot">&lt;-</span> dados <span class="sc">%&gt;%</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">grupo =</span> <span class="fu">ifelse</span>(r6 <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"Category Zero"</span>, <span class="st">"Category One"</span>))</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Cria um objeto de Surv</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>dados.adj_surv <span class="ot">&lt;-</span> <span class="fu">Surv</span>(dados.adj<span class="sc">$</span>tempos, dados.adj<span class="sc">$</span>cens)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Aplica o Teste Logrank</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>logrank.test <span class="ot">&lt;-</span> <span class="fu">survdiff</span>(dados.adj_surv <span class="sc">~</span> grupo, <span class="at">data =</span> dados.adj)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Ao fixar o nível de significância em 5% (<span class="math inline">\(\alpha = 0,05\)</span>), rejeitamsos a hipótese nula. Essa conclusão baseia-se no valor <span class="math inline">\(p\)</span> (probabilidade de significância) do teste sendo, <span class="math inline">\(p-valor \approx\)</span> 0,0166. Como o <span class="math inline">\(p-valor &lt; \alpha\)</span>, rejeita-se <span class="math inline">\(H_{0}\)</span>. Assim, conclui-se que as curvas de sobrevivência dos grupos são diferentes ao longo do tempo, ao nível de significância de 5%.</p>
+<p>A generalização do teste <em>logrank</em> para a comparação de <span class="math inline">\(r &gt; 2\)</span> funções de sobrevivência, <span class="math inline">\(S_{1}(t), S_{2}(t), \ldots, S_{r}(t)\)</span>, é direta. Utilizando a mesma notação anterior, o índice <span class="math inline">\(i\)</span> varia agora de <span class="math inline">\(1\)</span> a <span class="math inline">\(r\)</span>. Assim, os dados podem ser organizados em uma tabela de contingência <span class="math inline">\(2 \times r\)</span>, onde cada coluna <span class="math inline">\(i\)</span> contém <span class="math inline">\(d_{ij}\)</span> falhas e <span class="math inline">\(n_{ij} - d_{ij}\)</span> sobreviventes. Dessa forma, a <a href="#tbl-ExampleTableContig" class="quarto-xref">Tabela&nbsp;<span>2.1</span></a> seria estendida para ter <span class="math inline">\(r\)</span> colunas em vez de apenas duas.</p>
+<p>Condicionada à experiência de falha e censura até o tempo <span class="math inline">\(t_{j}\)</span> e ao número total de falhas no tempo <span class="math inline">\(t_{j}\)</span>, a distribuição conjunta de <span class="math inline">\(d_{2j}, \ldots,d_{rj}\)</span> segue uma hipergeométrica multivariada, dada por:</p>
+<p><span class="math display">\[
+\dfrac{ \prod_{i = 1}^{r} \binom{ n_{ij }}{ d_{ij} } }{ \binom{ n_{j }}{ d_{j} } }.
+\]</span></p>
+<p>A média de <span class="math inline">\(d_{ij}\)</span> é <span class="math inline">\(w_{ij} = n_{ij} d_{j} n_{j}^{-1}\)</span>, bem como a variância de <span class="math inline">\(d_{ij}\)</span> e a covariância de <span class="math inline">\(d_{ij}\)</span> e <span class="math inline">\(d_{lj}\)</span> são, respectivamente,</p>
+<p><span class="math display">\[
+(V_{j})_{ii} = n_{ij} (n_{j} - n_{ij}) d_{j} (n_{j} - d_{j}) n_{j}^{-2} (n_{j} - 1)^{-1}
+\]</span></p>
+<p>e</p>
+<p><span class="math display">\[
+(V_{j})_{il} = - n_{ij} n_{lj} d_{j} (n_{j} - d_{j}) n_{j}^{-2} (n_{j} - 1)^{-1}.
+\]</span></p>
+<p>A estatística <span class="math inline">\(v'_{j} = (d_{2j} - w_{2j}, \ldots, d_{rj} - w_{rj})\)</span> possui média zero e matriz de variância-covariância <span class="math inline">\(V_{j}\)</span>, com dimensão <span class="math inline">\(r - 1\)</span>. A matriz <span class="math inline">\(V_{j}\)</span> contém os termos <span class="math inline">\((V_{j}){ii}\)</span> na diagonal principal e <span class="math inline">\((V_{j})_{il}\)</span>, <span class="math inline">\(i,l = 2, \ldots,r\)</span>, fora da diagonal principal.</p>
+<p>A estatística <span class="math inline">\(v\)</span>, que agrega as contribuições de todos os tempos distintos de falha, é definida como:</p>
+<p><span class="math display">\[
+v = \sum_{j = 1}^{k} v_{j},
+\]</span></p>
+<p>onde <span class="math inline">\(v\)</span> é um vetor de dimensão <span class="math inline">\((r - 1) \times 1\)</span>, cujos elementos correspondem às diferenças entre os totais observados e esperados de falhas.</p>
+<p>Considerando, novamente, a independência das <span class="math inline">\(k\)</span> tabelas de contingência, a variância de <span class="math inline">\(v\)</span> é dada por <span class="math inline">\(V = V_{1} + \ldots + V_{k}\)</span>. Um teste aproximado para a igualdade das <span class="math inline">\(r\)</span> funções de sobrevivência pode ser baseado na estatística:</p>
+<p><span id="eq-EstTestelogrankGeneralizado"><span class="math display">\[
+T = v´V^{-1} v,
+\tag{2.8}\]</span></span></p>
+<p>que, sob a hipótese nula <span class="math inline">\(H_{0}\)</span> (igualdade das curvas de sobrevivência), segue uma distribuição qui-quadrado com <span class="math inline">\(r - 1\)</span> graus de liberdade para amostras grandes. Os graus de liberdade são <span class="math inline">\(r - 1\)</span> em vez de <span class="math inline">\(r\)</span>, pois os elementos de <span class="math inline">\(v\)</span> somam zero.</p>
+<p>Uma aplicação para a comparação de <span class="math inline">\(r\)</span> curvas de sobrevivência…</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Código</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Código em R a ser preenchido"</span>)</span></code><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Código em R a ser preenchido</code></pre>
+</div>
+</div>
+<section id="outros-testes" class="level3" data-number="2.3.1">
+<h3 data-number="2.3.1" class="anchored" data-anchor-id="outros-testes"><span class="header-section-number">2.3.1</span> Outros Testes</h3>
+<p>[…]</p>
+<div class="progress">
+<div class="progress-bar" style="width: 100%;">
+
+</div>
+</div>
+
+
+<!-- -->
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-aalen1978nonparametric" class="csl-entry" role="listitem">
+Aalen, Odd O. 1978. <span>«Nonparametric Inference for a Family of Counting Processes»</span>. <em>Annals of Statistics</em> 6 (4): 701–26. <a href="https://doi.org/10.1214/aos/1176344247">https://doi.org/10.1214/aos/1176344247</a>.
+</div>
+<div id="ref-aalen1978empirical" class="csl-entry" role="listitem">
+Aalen, Odd O., e Søren Johansen. 1978. <span>«An Empirical Transition Matrix for Non-Homogeneous Markov Chains Based on Censored Observations»</span>. <em>Scandinavian Journal of Statistics</em> 5 (3): 141–50.
+</div>
+<div id="ref-bohoris1994comparison" class="csl-entry" role="listitem">
+Bohoris, G. A. 1994. <span>«Comparison of the Cumulative-Hazard and Kaplan-Meier Estimators of the Survivor Function»</span>. <em>IEEE Transactions on Reliability</em> 43 (2): 230–32. <a href="https://doi.org/10.1109/24.293488">https://doi.org/10.1109/24.293488</a>.
+</div>
+<div id="ref-breslow1974large" class="csl-entry" role="listitem">
+Breslow, Norman, e John Crowley. 1974. <span>«A Large Sample Study of the Life Table and Product Limit Estimates under Random Censorship»</span>. <em>The Annals of Statistics</em> 2 (3): 437–53. <a href="https://doi.org/10.1214/aos/1176342705">https://doi.org/10.1214/aos/1176342705</a>.
+</div>
+<div id="ref-colosimo2006analise" class="csl-entry" role="listitem">
+Colosimo, Enrico Antonio, e Suely Ruiz Giolo. 2006. <em>Análise de Sobrevivência Aplicada</em>. 1.ª ed. São Paulo, Brasil: Blucher.
+</div>
+<div id="ref-gehan1965generalized" class="csl-entry" role="listitem">
+Gehan, Edmund A. 1965. <span>«A Generalized Wilcoxon Test for Comparing Arbitrarily Singly-Censored Samples»</span>. <em>Biometrika</em> 52 (1-2): 203–24. <a href="https://doi.org/10.2307/2333825">https://doi.org/10.2307/2333825</a>.
+</div>
+<div id="ref-kalbfleisch1980statistical" class="csl-entry" role="listitem">
+Kalbfleisch, John D., e Ross L. Prentice. 1980. <em>The Statistical Analysis of Failure Time Data</em>. Wiley Series em Probability e Mathematical Statistics. New York: Wiley.
+</div>
+<div id="ref-kaplan1958nonparametric" class="csl-entry" role="listitem">
+Kaplan, Edward L., e Paul Meier. 1958. <span>«Nonparametric Estimation from Incomplete Observations»</span>. <em>Journal of the American Statistical Association</em> 53 (282): 457–81. <a href="https://doi.org/10.1080/01621459.1958.10501452">https://doi.org/10.1080/01621459.1958.10501452</a>.
+</div>
+<div id="ref-klein1991small" class="csl-entry" role="listitem">
+Klein, John P. 1991. <span>«Small Sample Moments of Some Estimators of the Variance of the Kaplan-Meier and Nelson-Aalen Estimators»</span>. <em>Scandinavian Journal of Statistics</em> 18 (4): 333–40. <a href="https://doi.org/10.2307/4616203">https://doi.org/10.2307/4616203</a>.
+</div>
+<div id="ref-latta1981monte" class="csl-entry" role="listitem">
+Latta, Robert B. 1981. <span>«A Monte Carlo Study of Some Two-Sample Rank Tests with Censored Data»</span>. <em>Journal of the American Statistical Association</em> 76 (375): 713–19. <a href="https://doi.org/10.2307/2287572">https://doi.org/10.2307/2287572</a>.
+</div>
+<div id="ref-mantel1966evaluation" class="csl-entry" role="listitem">
+Mantel, Nathan. 1966. <span>«Evaluation of Survival Data and Two New Rank Order Statistics Arising in Its Consideration»</span>. <em>Cancer Chemotherapy Reports</em> 50 (3): 163–70.
+</div>
+<div id="ref-mantel1959statistical" class="csl-entry" role="listitem">
+Mantel, Nathan, e William Haenszel. 1959. <span>«Statistical Aspects of the Analysis of Data from Retrospective Studies of Disease»</span>. <em>Journal of the National Cancer Institute</em> 22 (4): 719–48.
+</div>
+<div id="ref-meier1975estimation" class="csl-entry" role="listitem">
+Meier, Paul. 1975. <span>«Estimation of a Survival Curve from Incomplete Data»</span>. <em>Journal of the American Statistical Association</em> 70 (351): 607–10. <a href="https://doi.org/10.1080/01621459.1975.10479872">https://doi.org/10.1080/01621459.1975.10479872</a>.
+</div>
+<div id="ref-nelson1972theory" class="csl-entry" role="listitem">
+Nelson, Wayne. 1972. <span>«Theory and Applications of Hazard Plotting for Censored Failure Data»</span>. <em>Technometrics</em> 14 (4): 945–66. <a href="https://doi.org/10.1080/00401706.1972.10488981">https://doi.org/10.1080/00401706.1972.10488981</a>.
+</div>
+<div id="ref-peto1972asymptotically" class="csl-entry" role="listitem">
+Peto, Richard, e Julian Peto. 1972. <span>«Asymptotically Efficient Rank Invariant Test Procedures»</span>. <em>Journal of the Royal Statistical Society: Series A (General)</em> 135 (2): 185–98. <a href="https://doi.org/10.2307/2344317">https://doi.org/10.2307/2344317</a>.
+</div>
+<div id="ref-prentice1978linear" class="csl-entry" role="listitem">
+Prentice, Ross L. 1978. <span>«Linear Rank Tests with Right Censored Data»</span>. <em>Biometrika</em> 65 (1): 167–79. <a href="https://doi.org/10.2307/2335206">https://doi.org/10.2307/2335206</a>.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiada");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiada");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./CI_BASIC_FUND.html" class="pagination-link" aria-label="Conceitos Básicos e Exemplos">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Conceitos Básicos e Exemplos</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./CIII_PARAM_TECH.html" class="pagination-link" aria-label="Técnicas Paramétricas">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Técnicas Paramétricas</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Código fonte</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb6" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>:::: progress</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>:::: {.progress-bar style="width: 100%;"}</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>::::</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>::::</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: Configuration R</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">OutDec =</span> <span class="st">","</span>, <span class="at">digits =</span> <span class="dv">4</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"https://docs.ufpr.br/~giolo/asa/dados/leucemia.txt"</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>dados <span class="ot">&lt;-</span> <span class="fu">read.table</span>(url, <span class="at">header =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="fu"># Técnicas Não Paramétricas</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>As técnicas não paramétricas desempenham um importante papel na análise de sobrevivência, pois permitem a estimativa da função de sobrevivência sem a necessidade de pressupor uma distribuição específica dos tempos até a ocorrência do evento de interesse. Essa abordagem é especialmente útil em estudos onde a distribuição dos tempos de falha é desconhecida ou onde se deseja evitar suposições rígidas sobre sua forma.</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>Diferentemente dos métodos paramétricos, que assumem distribuições predefinidas (como Weibull ou exponencial), as técnicas não paramétricas operam apenas com a ordenação dos eventos observados, tornando-se mais flexíveis e robustas e particularmente úteis na presença de dados censurados.</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="fu">## O Estimador de Kaplan-Meier</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>Proposto por @kaplan1958nonparametric. É um estimador não paramétrico utilizado para estimar a função de sobrevivência. Tal estimador também é chamado de de *estimador limite-produto*. O Estimador de Kaplan-Meier é uma adaptação a $S\left(t\right)$ empiríca que, na ausência de censura nos dados, é definida como:</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>\hat{S}\left(t\right) = \dfrac{\text{nº de observações que não falharam até o tempo } t}{\text{nº total de observações no estudo}}.</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>\noindent $\hat{S}\left(t\right)$ é uma função que tem um formato gráfico de escada com degraus nos tempos observados de falha de tamanho $1/n$, onde $n$ é o tamanho amostral.</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>O processo utilizado até se obter a estimativa de Kaplan-Meier é um processo passo a passo, em que o próximo passo depende do anterior. De forma suscetível, para qualquer $t$, $S\left(t\right)$ pode ser escrito em termos de probabilidades condicionais. Suponha que existam $n$ pacientes no estudo e $k \left(\leq n\right)$ falhas distintas nos tempos $t_{1} \leq t_{2} \leq \cdots \leq t_{k}$. Considerando $S\left(t\right)$ uma função discreta com probabilidade maior que zero somente nos tempos de falha $t_{j}$, $j = 1, \cdots, k$, tem-se que:</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>S\left(t_{j}\right) = \left(1 - q_{1}\right) \left(1 - q_{2}\right) \cdots \left(1 - q_{j}\right),</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>$$ {#eq-DecomposeSt}</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>\noindent em que $q_{j}$ é a probabilidade de um indivíduo morrer no intervalo $\left[t_{j-1}, t{j}\right)$ sabendo que ele não morreu até $t_{j-1}$ e considerando $t_{0} = 0$. Ou seja, pode se escrever $q_{j}$ como:</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>q_{j} = P\left(T \in \left[t_{j-1}, t_{j}\right) | T \geq t_{j-1}\right),</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>$$ {#eq-FormProbQj}</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>\noindent para $j = 1, \cdots, k$. A expressão geral do estimador de Kaplan-Meier pode ser apresentada após estas considerações preliminares. Considere:</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$t_{1} \leq t_{2} \leq \cdots \leq t_{k}$ os $k$ tempos distintos e ordenados de falha;</span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$d_{j}$ o número de falhas em $t_{j}$, com $j = 1, \cdots, k$;</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>$n_{j}$ o número de indivíduos sob risco em $t_{j}$, ou seja, os indivíduos que não falharam e não foram censurados até o instante imediatamente anterior a $t_{j}$.</span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>Com isso, pode-se definir o estimador de Kaplan-Meier como:</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>\hat{S}_{KM}\left(t\right) = \prod_{j \text{ : } t_{j} &lt; t} \left( \dfrac{n_{j} - d_{j}}{n_{j}} \right) = \prod_{j \text{ : } t_{j} &lt; t} \left(1 - \dfrac{d_{j}}{n_{j}} \right)</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ESTKaplanMeier}</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>De forma intuitiva, por assim dizer, a @eq-ESTKaplanMeier é proveniente da @eq-DecomposeSt, sendo está, uma decomposição de $S\left(t\right)$ em termos $q_{j}$'s. Assim, a @eq-ESTKaplanMeier é justificada se os $q_{j}$'s forem estimados por $d_{j}/n_{j}$, expresso em termos de probabilidade na @eq-FormProbQj. No artigo original de 1958, Kaplan e Meier provam que a @eq-ESTKaplanMeier é um *Estimador de Máxima Verossimilhança* (EMV) para $S\left(t\right)$. Seguindo certos passos, é possível provar que que $\hat{S}_{KM}\left(t\right)$ é EMV de $S\left(t\right)$. Supondo que $d_{j}$ observações falham no tempo tempo $t_{j}$, para $j = 1, \cdots, k$, e $m_{j}$ observações são censuradas no intervalo $\left[t_{j}, t_{j+1}\right)$, nos tempos $t_{j1}, \ldots, t_{jm_{j}}$. A probabilidade de falha no tempo $t_{j}$ é, então,</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>S\left(t_{j}\right) - S\left(t_{j}+\right),</span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>\noindent com $S\left(t_{j}+\right) = \lim_{\Delta t \to 0+} S\left(t_{j} + \Delta t\right)$, $j = 1, \cdots, k$. Por outro lado, a contribuição para a função de verossimilhança de um tempo de sobrevivência censurado em $t_{jl}$ para $l = 1, \ldots, m_{j}$, é:</span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>P\left(T &gt; t_{jl}\right) = S\left(t_{jl}+\right).</span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>\noindent A função de verossimilhança pode, então, ser escrita como:</span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>L\left(S\left(\cdot\right)\right) = \prod_{j = 0}^{k} \left<span class="sc">\{</span> \left<span class="co">[</span><span class="ot"> S\left(t_{j}\right) - S\left(t_{j}+\right) \right</span><span class="co">]</span>^{d_{j}} \prod_{l=1}^{m_{j}} S\left(t_{jl}+\right) \right<span class="sc">\}</span></span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>\noindent Com isso, é possível provar que $S\left(t\right)$ que maximiza $L\left(S\left(\cdot\right)\right)$ é exatamente a expressão dada pela @eq-ESTKaplanMeier.</span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a><span class="fu">### Propriedades do Estimador de Kaplan-Meier</span></span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a>Como um estimador de máxima verossimilhança, o estimador de Kaplan-Meier têm interessantes propriedades. As principais são:</span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>É não-viciado para grandes amostras;</span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>É fracamente consistente;</span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Converge assintoticamente para um processo gaussiano.</span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a>A consistência e normalidade assintótica de $\hat{S}_{KM}\left(t\right)$ foram provadas sob certas condições de regularidade, por @breslow1974large e @meier1975estimation.</span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a><span class="fu">### Variância do Estimador de Kaplan-Meier</span></span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a>Para que se possa construir intervalos de confiança e testar hipóteses para $S\left(t\right)$, se faz necessário ter conhecimento quanto variabilidade e precisão do estimador de Kaplan-Meier. Este estimador, assim como outros, está sujeito a variações que devem ser descritas em termos de estimações intervalares. A expressão da variância assintótica do estimador de Kaplan-Meier é dada pela @eq-VarKaplanMeier.</span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a>\widehat{Var}\left<span class="co">[</span><span class="ot">\hat{S}_{KM}\left(t\right)\right</span><span class="co">]</span> = \left<span class="co">[</span><span class="ot">\hat{S}_{KM}\left(t\right)\right</span><span class="co">]</span>^{2} \sum_{j \text{ : } t_{j} &lt; t} \dfrac{d_{j}}{n_{j} \left(n_{j} - d_{j}\right)}</span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a>$$ {#eq-VarKaplanMeier}</span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a>A expressão dada na @eq-VarKaplanMeier, é conhecida como fórmula de Greenwood e pode ser obtida a partir de propriedades do estimador de máxima verossimilhança. Os detalhes da obtenção da @eq-VarKaplanMeier estão disponíveis em @kalbfleisch1980statistical.</span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a>Como $\hat{S}_{KM}\left(t\right)$, para um $t$ fixo, tem distribuição assintóticamente Normal. O intervalo de confiança com $100\left(1 - \alpha\right)$% de confiança para $\hat{S}_{KM}\left(t\right)$ é expresso por:</span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a>\hat{S}_{KM}\left(t\right) \pm z_{\alpha/2} \sqrt{\widehat{Var}\left[\hat{S}_{KM}\left(t\right)\right]}.</span>
+<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a>Vale salientar que para valores extremos de $t$, este intervalo de confiança pode apresentar limites que não condizem com a teoria de probabilidades. Para solucionar tal problema, aplica-se uma transformação em $\hat{S}_{KM}\left(t\right)$ como, por exemplo, $\hat{U}\left(t\right) = \ln\left\{ - \ln\left\{ \hat{S}_{KM}\left(t\right) \right<span class="sc">\}</span> \right<span class="sc">\}</span>$. Esta transformação foi sugerida por @kalbfleisch1980statistical, tendo sua variância estimada por:</span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a>\widehat{Var}\left<span class="co">[</span><span class="ot">\hat{U}\left(t\right)\right</span><span class="co">]</span> = \dfrac{ \sum_{j:t_{j}&lt;t} \frac{d_{j}}{n_{j}\left(n_{j}-d_{j}\right)} }{ \left<span class="co">[</span><span class="ot"> \sum_{j:t_{j}&lt;t} \ln\left\{ \frac{n_{j}-d_{j}}{n_{j}}\right\} \right</span><span class="co">]</span>^{2} } = \dfrac{ \sum_{j:t_{j}&lt;t} \frac{d_{j}}{n_{j}\left(n_{j}-d_{j}\right)} }{ \left<span class="co">[</span><span class="ot">\ln\left\{ \hat{S}_{KM}\left(t\right) \right\}\right</span><span class="co">]</span>^{2} }.</span>
+<span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a>Logo, pode-se aproximar um intervalo com $100 \left(1 - \alpha\right)\%$ de confiança para $S\left(t\right)$ desta forma:</span>
+<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a>\left<span class="co">[</span><span class="ot"> \hat{S}_{KM}\left(t\right) \right</span><span class="co">]</span>^{ \exp\left<span class="sc">\{</span> \pm z_{\alpha/2} \sqrt{\widehat{Var}\left<span class="co">[</span><span class="ot">\hat{U}\left(t\right)\right</span><span class="co">]</span>} \right<span class="sc">\}</span> }.</span>
+<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a>Veja uma aplicação do estimador de Kaplan-Meier para os dados de *Leucemia Pediátrica* dispostos no Apêndice (A) do livro *Análise de Sobrevivência Aplicada* de @colosimo2006analise. De posse do conjunto de dados, pode-se estimar a curva de sobrevivência, tal curva foi ilustrada na @fig-SobrKM.</span>
+<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Curva de Sobrevivência de Kaplan-Meier com IC de 95%"</span></span>
+<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-SobrKM</span></span>
+<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------</span></span>
+<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] KAPLAN-MEIER</span></span>
+<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------</span></span>
+<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimador de Kaplan-Meier (Pacote survival)</span></span>
+<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a>ekm <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(tempos, cens)<span class="sc">~</span><span class="dv">1</span>, <span class="at">data =</span> dados)</span>
+<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualizar Curva de Sobrevivência (Pacote ggplot2)</span></span>
+<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> <span class="cn">NULL</span>, <span class="fu">aes</span>(<span class="at">x =</span> ekm<span class="sc">$</span>time, <span class="at">y =</span> ekm<span class="sc">$</span>surv)) <span class="sc">+</span></span>
+<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">lwd =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> ekm<span class="sc">$</span>lower, <span class="at">ymax =</span> ekm<span class="sc">$</span>upper), <span class="at">fill =</span> <span class="st">"blue"</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Tempo"</span>, <span class="at">y =</span> <span class="st">"Probabilidade de Sobrevivência"</span>) <span class="sc">+</span></span>
+<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-143"><a href="#cb6-143" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-144"><a href="#cb6-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-145"><a href="#cb6-145" aria-hidden="true" tabindex="-1"></a><span class="fu">## Outros Estimadores Não Parâmetricos</span></span>
+<span id="cb6-146"><a href="#cb6-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-147"><a href="#cb6-147" aria-hidden="true" tabindex="-1"></a>O estimador de Kaplan-Meier é amplamente utilizado para estimar a função de sobrevivência $S(t)$. Ele está disponível em diversos pacotes estatísticos e é frequentemente abordado em materiais introdutórios de estatística. No entanto, dois outros estimadores também possuem relevância na literatura: o estimador de Nelson-Aalen e o estimador de Tabela de Vida.</span>
+<span id="cb6-148"><a href="#cb6-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-149"><a href="#cb6-149" aria-hidden="true" tabindex="-1"></a>O estimador de Nelson-Aalen, desenvolvido posteriormente, apresenta similaridades com Kaplan-Meier em termos de propriedades, mas adota uma abordagem diferente ao focar na função risco acumulado $\Lambda(t)$.</span>
+<span id="cb6-150"><a href="#cb6-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-151"><a href="#cb6-151" aria-hidden="true" tabindex="-1"></a>Já o estimador da Tabela de Vida, também chamado de tabela atuarial, tem um importante valor histórico, sendo amplamente utilizado por demógrafos e atuários desde o século XIX sendo empregado principalmente em grandes amostras. Seu uso é especialmente relevante em contextos demográficos e atuariais, como estudos de expectativa de vida e análise de dados censitários.</span>
+<span id="cb6-152"><a href="#cb6-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-153"><a href="#cb6-153" aria-hidden="true" tabindex="-1"></a>Nesta seção será abordado apenas o estimador de Nelson-Aalen. Para conhecer mais sobre o estimador da Tabela de Vida ou Tabela Atuarial, consulte a Seção 2.4.2 do livro *Análise de Sobrevivência Aplicada* de @colosimo2006analise.</span>
+<span id="cb6-154"><a href="#cb6-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-155"><a href="#cb6-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-156"><a href="#cb6-156" aria-hidden="true" tabindex="-1"></a><span class="fu">### Estimador de Nelson-Aalen</span></span>
+<span id="cb6-157"><a href="#cb6-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-158"><a href="#cb6-158" aria-hidden="true" tabindex="-1"></a>Mais recente que o estimador de Kaplan-Meier, este estimador se baseia na função de sobrevivência expressa da seguinte forma:</span>
+<span id="cb6-159"><a href="#cb6-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-160"><a href="#cb6-160" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-161"><a href="#cb6-161" aria-hidden="true" tabindex="-1"></a>S(t) = \exp\left<span class="sc">\{</span> - \Lambda(t) \right<span class="sc">\}</span>,</span>
+<span id="cb6-162"><a href="#cb6-162" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-163"><a href="#cb6-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-164"><a href="#cb6-164" aria-hidden="true" tabindex="-1"></a>\noindent em que $\Lambda(t)$ é a função de risco acumulado apresentada na @sec-TaxaAcu.</span>
+<span id="cb6-165"><a href="#cb6-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-166"><a href="#cb6-166" aria-hidden="true" tabindex="-1"></a>A estimativa para $\Lambda(t)$ foi inicialmente proposta por @nelson1972theory posteriormente retomada por @aalen1978nonparametric que demonstrou suas propriedades assintóticas utilizando processos de contagem. Na literatura, esse estimador é amplamente conhecido como o estimador de Nelson-Aalen e é definido pela seguinte expressão:</span>
+<span id="cb6-167"><a href="#cb6-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-168"><a href="#cb6-168" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-169"><a href="#cb6-169" aria-hidden="true" tabindex="-1"></a>\hat{\Lambda}(t) = \sum_{j:t_{j} &lt; t} \left( \dfrac{d_{j}}{n_{j}} \right),</span>
+<span id="cb6-170"><a href="#cb6-170" aria-hidden="true" tabindex="-1"></a>$$ {#eq-ESTNelsonAalen}</span>
+<span id="cb6-171"><a href="#cb6-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-172"><a href="#cb6-172" aria-hidden="true" tabindex="-1"></a>\noindent onde $d_{j}$ e $n_{j}$ são as mesmas definições usadas no estimador de Kaplan-Meier. A variância do estimador, conforme proposta por @aalen1978nonparametric, é dada por:</span>
+<span id="cb6-173"><a href="#cb6-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-174"><a href="#cb6-174" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-175"><a href="#cb6-175" aria-hidden="true" tabindex="-1"></a>\widehat{Var}\left<span class="co">[</span><span class="ot">\hat{\Lambda}(t)\right</span><span class="co">]</span> = \sum_{j:t_{j} &lt; t} \left( \dfrac{d_{j}}{n_{j}^{2}} \right).</span>
+<span id="cb6-176"><a href="#cb6-176" aria-hidden="true" tabindex="-1"></a>$$ {#eq-VarNelsonAalen}</span>
+<span id="cb6-177"><a href="#cb6-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-178"><a href="#cb6-178" aria-hidden="true" tabindex="-1"></a>\noindent Uma alternativa para a estimativa da variância de $\hat{\Lambda}(t)$, proposta por @klein1991small, é:</span>
+<span id="cb6-179"><a href="#cb6-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-180"><a href="#cb6-180" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-181"><a href="#cb6-181" aria-hidden="true" tabindex="-1"></a>\widehat{Var}\left<span class="co">[</span><span class="ot">\hat{\Lambda}(t)\right</span><span class="co">]</span> = \sum_{j:t_{j} &lt; t} \dfrac{(n_{j} - d_{j})d_{j}}{n_{j}^{3}},</span>
+<span id="cb6-182"><a href="#cb6-182" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-183"><a href="#cb6-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-184"><a href="#cb6-184" aria-hidden="true" tabindex="-1"></a>\noindent entretanto, o estimador da @eq-VarNelsonAalen apresenta menor vício, tornando-o mais preferível que o proposto por @klein1991small.</span>
+<span id="cb6-185"><a href="#cb6-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-186"><a href="#cb6-186" aria-hidden="true" tabindex="-1"></a>Desta forma, podemos definir, com base no estimador de Nelson-Aalen, um estimador para a função de sobrevivência, podendo ser expressa por:</span>
+<span id="cb6-187"><a href="#cb6-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-188"><a href="#cb6-188" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-189"><a href="#cb6-189" aria-hidden="true" tabindex="-1"></a>\hat{S}_{NA}(t) = \exp\left<span class="sc">\{</span>- \hat{\Lambda}(t) \right<span class="sc">\}</span>.</span>
+<span id="cb6-190"><a href="#cb6-190" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-191"><a href="#cb6-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-192"><a href="#cb6-192" aria-hidden="true" tabindex="-1"></a>Deve-se, a variância deste estimador, a @aalen1978empirical. Podendo ser mensurada pela expressão:</span>
+<span id="cb6-193"><a href="#cb6-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-194"><a href="#cb6-194" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-195"><a href="#cb6-195" aria-hidden="true" tabindex="-1"></a>\widehat{Var}\left<span class="co">[</span><span class="ot">\hat{S}_{NA}(t)\right</span><span class="co">]</span> = \left<span class="co">[</span><span class="ot"> \hat{S}_{NA}(t) \right</span><span class="co">]</span>^{2} \sum_{j:t_{j} &lt; t} \left( \dfrac{d_{j}}{n_{j}^{2}} \right).</span>
+<span id="cb6-196"><a href="#cb6-196" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-197"><a href="#cb6-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-198"><a href="#cb6-198" aria-hidden="true" tabindex="-1"></a>Uma aplicação do estimador de Nelson-Aalen foi desenhada na @fig-ExampleNA em dois subgráficos. O primeiro apresenta a função de risco acumulado $\Lambda(t)$ estimada conforme a @eq-ESTNelsonAalen. O segundo mostra a curva de sobrevivência de Nelson-Aalen através das relações entre as funções de análise de sobrevivência.</span>
+<span id="cb6-199"><a href="#cb6-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-200"><a href="#cb6-200" aria-hidden="true" tabindex="-1"></a><span class="in">```{r warning=FALSE, message=FALSE, echo=FALSE}</span></span>
+<span id="cb6-201"><a href="#cb6-201" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Função Risco Acumulado e Função Sobrevivência com IC de 95% segundo o Estimador de Nelson-Aalen."</span></span>
+<span id="cb6-202"><a href="#cb6-202" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-subcap: </span></span>
+<span id="cb6-203"><a href="#cb6-203" aria-hidden="true" tabindex="-1"></a><span class="co">#| - "Função Risco Acumulado"</span></span>
+<span id="cb6-204"><a href="#cb6-204" aria-hidden="true" tabindex="-1"></a><span class="co">#| - "Função Sobrevivência"</span></span>
+<span id="cb6-205"><a href="#cb6-205" aria-hidden="true" tabindex="-1"></a><span class="co">#| layout-ncol: 2</span></span>
+<span id="cb6-206"><a href="#cb6-206" aria-hidden="true" tabindex="-1"></a><span class="co">#| layout-nrow: 1</span></span>
+<span id="cb6-207"><a href="#cb6-207" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap-location: bottom</span></span>
+<span id="cb6-208"><a href="#cb6-208" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-ExampleNA</span></span>
+<span id="cb6-209"><a href="#cb6-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-210"><a href="#cb6-210" aria-hidden="true" tabindex="-1"></a><span class="co"># Nível de Significância</span></span>
+<span id="cb6-211"><a href="#cb6-211" aria-hidden="true" tabindex="-1"></a>alpha <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
+<span id="cb6-212"><a href="#cb6-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-213"><a href="#cb6-213" aria-hidden="true" tabindex="-1"></a><span class="co"># Quantil da Distribuição Normal</span></span>
+<span id="cb6-214"><a href="#cb6-214" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha<span class="sc">/</span><span class="dv">2</span>)</span>
+<span id="cb6-215"><a href="#cb6-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-216"><a href="#cb6-216" aria-hidden="true" tabindex="-1"></a><span class="co"># Estatísticas</span></span>
+<span id="cb6-217"><a href="#cb6-217" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">survfit</span>(<span class="fu">Surv</span>(tempos, cens)<span class="sc">~</span><span class="dv">1</span>, <span class="at">data =</span> dados)</span>
+<span id="cb6-218"><a href="#cb6-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-219"><a href="#cb6-219" aria-hidden="true" tabindex="-1"></a><span class="co"># h(t) e Var[h(t)]</span></span>
+<span id="cb6-220"><a href="#cb6-220" aria-hidden="true" tabindex="-1"></a>ena <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(fit<span class="sc">$</span>n.event<span class="sc">/</span>fit<span class="sc">$</span>n.risk)</span>
+<span id="cb6-221"><a href="#cb6-221" aria-hidden="true" tabindex="-1"></a>var.ena <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(fit<span class="sc">$</span>n.event<span class="sc">/</span>fit<span class="sc">$</span>n.risk<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb6-222"><a href="#cb6-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-223"><a href="#cb6-223" aria-hidden="true" tabindex="-1"></a><span class="co"># S(t) e Var[S(t)]</span></span>
+<span id="cb6-224"><a href="#cb6-224" aria-hidden="true" tabindex="-1"></a>ena.st <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span>ena)</span>
+<span id="cb6-225"><a href="#cb6-225" aria-hidden="true" tabindex="-1"></a>var.ena.st <span class="ot">&lt;-</span> ena.st<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> var.ena</span>
+<span id="cb6-226"><a href="#cb6-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-227"><a href="#cb6-227" aria-hidden="true" tabindex="-1"></a><span class="co"># Intervalo de Confiança de S(t)</span></span>
+<span id="cb6-228"><a href="#cb6-228" aria-hidden="true" tabindex="-1"></a>conf.lower <span class="ot">&lt;-</span> ena.st <span class="sc">-</span> z <span class="sc">*</span> <span class="fu">sqrt</span>(var.ena.st)</span>
+<span id="cb6-229"><a href="#cb6-229" aria-hidden="true" tabindex="-1"></a>conf.upper <span class="ot">&lt;-</span> ena.st <span class="sc">+</span> z <span class="sc">*</span> <span class="fu">sqrt</span>(var.ena.st)</span>
+<span id="cb6-230"><a href="#cb6-230" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-231"><a href="#cb6-231" aria-hidden="true" tabindex="-1"></a><span class="co"># Risco Acumulado</span></span>
+<span id="cb6-232"><a href="#cb6-232" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> <span class="cn">NULL</span>, <span class="fu">aes</span>(<span class="at">x =</span> fit<span class="sc">$</span>time, <span class="at">y =</span> ena)) <span class="sc">+</span></span>
+<span id="cb6-233"><a href="#cb6-233" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"red"</span>, <span class="at">lwd =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb6-234"><a href="#cb6-234" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Tempo"</span>, <span class="at">y =</span> <span class="st">"Risco Acumulado"</span>) <span class="sc">+</span></span>
+<span id="cb6-235"><a href="#cb6-235" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb6-236"><a href="#cb6-236" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb6-237"><a href="#cb6-237" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb6-238"><a href="#cb6-238" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb6-239"><a href="#cb6-239" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-240"><a href="#cb6-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-241"><a href="#cb6-241" aria-hidden="true" tabindex="-1"></a><span class="co"># Probabilidade de Sobrevivência</span></span>
+<span id="cb6-242"><a href="#cb6-242" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> <span class="cn">NULL</span>, <span class="fu">aes</span>(<span class="at">x =</span> fit<span class="sc">$</span>time, <span class="at">y =</span> ena.st)) <span class="sc">+</span></span>
+<span id="cb6-243"><a href="#cb6-243" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">lwd =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb6-244"><a href="#cb6-244" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Tempo"</span>, <span class="at">y =</span> <span class="st">"Probabilidade de Sobrevivência"</span>) <span class="sc">+</span></span>
+<span id="cb6-245"><a href="#cb6-245" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> conf.lower, <span class="at">ymax =</span> conf.upper), <span class="at">fill =</span> <span class="st">"blue"</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb6-246"><a href="#cb6-246" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb6-247"><a href="#cb6-247" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb6-248"><a href="#cb6-248" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb6-249"><a href="#cb6-249" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb6-250"><a href="#cb6-250" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-251"><a href="#cb6-251" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-252"><a href="#cb6-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-253"><a href="#cb6-253" aria-hidden="true" tabindex="-1"></a>Vale destacar que o estimador de Nelson-Aalen apresenta, na maioria dos casos, estimativas próximas ao estimador de Kaplan-Meier. @bohoris1994comparison mostrou que $\hat{S}_{NA}(t) \geq \hat{S}_{KM}(t)$ para todo $t$, isto é, as estimativas obtidas pelo estimador de Nelson-Aalen são maiores ou iguais às estimativas obtidas pelo estimador de Kaplan-Meier.</span>
+<span id="cb6-254"><a href="#cb6-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-255"><a href="#cb6-255" aria-hidden="true" tabindex="-1"></a><span class="in">```{r warning=FALSE, message=FALSE, echo=FALSE}</span></span>
+<span id="cb6-256"><a href="#cb6-256" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Comparação Entre as Curvas de Sobrevivência de Kaplan-Meier Nelson-Aalen."</span></span>
+<span id="cb6-257"><a href="#cb6-257" aria-hidden="true" tabindex="-1"></a><span class="co">#| layout-nrow: 1</span></span>
+<span id="cb6-258"><a href="#cb6-258" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap-location: bottom</span></span>
+<span id="cb6-259"><a href="#cb6-259" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-CompareSurv</span></span>
+<span id="cb6-260"><a href="#cb6-260" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-261"><a href="#cb6-261" aria-hidden="true" tabindex="-1"></a><span class="co"># Cria um objeto `ggplot`</span></span>
+<span id="cb6-262"><a href="#cb6-262" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> <span class="cn">NULL</span>, <span class="fu">aes</span>(<span class="at">x =</span> ekm<span class="sc">$</span>time)) <span class="sc">+</span></span>
+<span id="cb6-263"><a href="#cb6-263" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> ekm<span class="sc">$</span>surv, <span class="at">color =</span> <span class="st">"Kaplan-Meier"</span>), <span class="at">lwd =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb6-264"><a href="#cb6-264" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> ekm<span class="sc">$</span>lower, <span class="at">ymax =</span> ekm<span class="sc">$</span>upper), <span class="at">fill =</span> <span class="st">"blue"</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb6-265"><a href="#cb6-265" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-266"><a href="#cb6-266" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> ena.st, <span class="at">color =</span> <span class="st">"Nelson-Aalen"</span>), <span class="at">lwd =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb6-267"><a href="#cb6-267" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> conf.lower, <span class="at">ymax =</span> conf.upper), <span class="at">fill =</span> <span class="st">"red"</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb6-268"><a href="#cb6-268" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-269"><a href="#cb6-269" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Tempo"</span>, <span class="at">y =</span> <span class="st">"Probabilidade de Sobrevivência"</span>, <span class="at">color =</span> <span class="st">"Estimador"</span>) <span class="sc">+</span></span>
+<span id="cb6-270"><a href="#cb6-270" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-271"><a href="#cb6-271" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Kaplan-Meier"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"Nelson-Aalen"</span> <span class="ot">=</span> <span class="st">"red"</span>)) <span class="sc">+</span></span>
+<span id="cb6-272"><a href="#cb6-272" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb6-273"><a href="#cb6-273" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb6-274"><a href="#cb6-274" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb6-275"><a href="#cb6-275" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"top"</span>,</span>
+<span id="cb6-276"><a href="#cb6-276" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb6-277"><a href="#cb6-277" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb6-278"><a href="#cb6-278" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb6-279"><a href="#cb6-279" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-280"><a href="#cb6-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-281"><a href="#cb6-281" aria-hidden="true" tabindex="-1"></a><span class="fu">## Comparação de Curvas de Sobrevivência</span></span>
+<span id="cb6-282"><a href="#cb6-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-283"><a href="#cb6-283" aria-hidden="true" tabindex="-1"></a>Considere um problema na área da saúde em que se deseja comparar dois grupos: um que receberá tratamento com uma determinada droga e outro que será o grupo controle. Estatísticas amplamente utilizadas para esse fim podem ser vistas como generalizações, para dados censurados, de testes não paramétricos bem conhecidos. Entre esses, o teste *logrank* <span class="co">[</span><span class="ot">@mantel1966evaluation</span><span class="co">]</span> é o mais empregado em análises de sobrevivência. @gehan1965generalized propôs uma generalização para a estatística de Wilcoxon. Outras generalizações foram introduzidas por autores como @peto1972asymptotically e @prentice1978linear, enquanto @latta1981monte utilizou simulações de Monte Carlo para comparar diversos testes não-paramétricos.</span>
+<span id="cb6-284"><a href="#cb6-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-285"><a href="#cb6-285" aria-hidden="true" tabindex="-1"></a>Nesta seção, será dada ênfase ao teste *logrank*, amplamente utilizado em análises de sobrevivência e particularmente adequado quando a razão entre as funções de risco dos grupos a serem comparados é aproximadamente constante. Ou seja, quando as populações apresentam a propriedade de riscos proporcionais. </span>
+<span id="cb6-286"><a href="#cb6-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-287"><a href="#cb6-287" aria-hidden="true" tabindex="-1"></a>A estatística do teste *logrank* baseia-se na diferença entre o número observado de falhas em cada grupo e o número esperado de falhas sob a hipótese nula. Essa abordagem é semelhante à do teste de @mantel1959statistical, que combina tabelas de contingência. Além disso, o teste *logrank* possui a mesma expressão do teste de escore para o modelo de regressão de Cox.</span>
+<span id="cb6-288"><a href="#cb6-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-289"><a href="#cb6-289" aria-hidden="true" tabindex="-1"></a>Considere, inicialmente, o teste de igualdade entre duas funções de sobrevivência $S_{1}(t)$ e $S_{2}(t)$. Seja $t_{1} &lt; t_{2} &lt; \ldots &lt; t_{k}$ a sequência dos tempos de falha distintos observados na amostra combinada, formada pela união das duas amostras individuais. Suponha que, no tempo $t_{j}$, ocorram $d_{j}$ falhas e que $n_{j}$ indivíduos estejam sob risco imediatamente antes de $t_{j}$ na amostra combinada. Nas amostras individuais, as quantidades correspondentes são $d_{ij}$ e $n_{ij}$, onde $i = 1, 2$ representa o grupo e $j = 1, \cdots, k$ indica o tempo de falha.</span>
+<span id="cb6-290"><a href="#cb6-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-291"><a href="#cb6-291" aria-hidden="true" tabindex="-1"></a>No tempo $t_{j}$, os dados podem ser organizados em uma tabela de contingência $2 \times 2$, onde $d_{ij}$ representa o número de falhas e $n_{ij} - d_{ij}$ o número de sobreviventes em cada grupo $i$. Essa disposição está ilustrada na @tbl-ExampleTableContig.</span>
+<span id="cb6-292"><a href="#cb6-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-293"><a href="#cb6-293" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo=FALSE}</span></span>
+<span id="cb6-294"><a href="#cb6-294" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Tabela de contingência gerada no tempo $t_{j}$."</span></span>
+<span id="cb6-295"><a href="#cb6-295" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-ExampleTableContig</span></span>
+<span id="cb6-296"><a href="#cb6-296" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-297"><a href="#cb6-297" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb6-298"><a href="#cb6-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-299"><a href="#cb6-299" aria-hidden="true" tabindex="-1"></a><span class="co"># Criando a tabela em R</span></span>
+<span id="cb6-300"><a href="#cb6-300" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(</span>
+<span id="cb6-301"><a href="#cb6-301" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb6-302"><a href="#cb6-302" aria-hidden="true" tabindex="-1"></a>    <span class="st">" "</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Falha"</span>, <span class="st">"Não Falha"</span>, <span class="st">" "</span>),</span>
+<span id="cb6-303"><a href="#cb6-303" aria-hidden="true" tabindex="-1"></a>    <span class="st">"1"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"$d_{1j}$"</span>, <span class="st">"$n_{1j} - d_{1j}$"</span>, <span class="st">"$n_{1j}$"</span>),</span>
+<span id="cb6-304"><a href="#cb6-304" aria-hidden="true" tabindex="-1"></a>    <span class="st">"2"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"$d_{2j}$"</span>, <span class="st">"$n_{2j} - d_{2j}$"</span>, <span class="st">"$n_{2j}$"</span>),</span>
+<span id="cb6-305"><a href="#cb6-305" aria-hidden="true" tabindex="-1"></a>    <span class="st">" "</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"$d_{j}$"</span>, <span class="st">"$n_{j} - d_{j}$"</span>, <span class="st">"$n_{j}$"</span>)</span>
+<span id="cb6-306"><a href="#cb6-306" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb6-307"><a href="#cb6-307" aria-hidden="true" tabindex="-1"></a>  <span class="at">escape =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-308"><a href="#cb6-308" aria-hidden="true" tabindex="-1"></a>  <span class="at">align =</span> <span class="st">"c"</span>,</span>
+<span id="cb6-309"><a href="#cb6-309" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">""</span>, <span class="st">"Grupo 1"</span>, <span class="st">"Grupo 2"</span>, <span class="st">" "</span>),</span>
+<span id="cb6-310"><a href="#cb6-310" aria-hidden="true" tabindex="-1"></a>  <span class="at">booktabs =</span> <span class="cn">TRUE</span></span>
+<span id="cb6-311"><a href="#cb6-311" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-312"><a href="#cb6-312" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-313"><a href="#cb6-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-314"><a href="#cb6-314" aria-hidden="true" tabindex="-1"></a>Condicionado à ocorrência de falhas e censuras até o tempo $t_{j}$ (fixando as marginais das colunas) e ao número total de falhas no tempo $t_{j}$ (fixando as marginais das linhas), a distribuição de $d_{2j}$ é, então, uma hipergeométrica:</span>
+<span id="cb6-315"><a href="#cb6-315" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-316"><a href="#cb6-316" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-317"><a href="#cb6-317" aria-hidden="true" tabindex="-1"></a>\dfrac{ \binom{ n_{1j} }{ d_{1j} } \binom{ n_{2j} }{ d_{2j} } }{ \binom{ n_{j} }{ d_{j} } }.</span>
+<span id="cb6-318"><a href="#cb6-318" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-319"><a href="#cb6-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-320"><a href="#cb6-320" aria-hidden="true" tabindex="-1"></a>A média de $d_{2j}$ é dada por $w_{2j} = n_{2j} d_{j} n_{j}^{-1}$. Isso significa que, na ausência de diferenças entre as duas populações no tempo $t_{j}$, o número total de falhas ($d_{j}$) pode ser alocado entre as duas amostras proporcionalmente à razão entre o número de indivíduos sob risco em cada amostra e o número total sob risco.</span>
+<span id="cb6-321"><a href="#cb6-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-322"><a href="#cb6-322" aria-hidden="true" tabindex="-1"></a>A variância de $d_{2j}$ obtida a partir da distribuição hipergeométrica é:</span>
+<span id="cb6-323"><a href="#cb6-323" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-324"><a href="#cb6-324" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-325"><a href="#cb6-325" aria-hidden="true" tabindex="-1"></a>(V_{j})_{2} = n_{2j}(n_{j} - n_{2j})d_{j}(n_{j} - d_{j}) n_{j}^{-2} (n_{j} - 1)^{-1}.</span>
+<span id="cb6-326"><a href="#cb6-326" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-327"><a href="#cb6-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-328"><a href="#cb6-328" aria-hidden="true" tabindex="-1"></a>\noindent Portanto, a estatística $d_{2j} - w_{2j}$ possui média zero e variância $(V_{j})_{2}$. Se as $k$ tabelas de contingência forem independentes, um teste aproximado para avaliar a igualdade entre as duas funções de sobrevivência pode ser construído com base na seguinte estatística:</span>
+<span id="cb6-329"><a href="#cb6-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-330"><a href="#cb6-330" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-331"><a href="#cb6-331" aria-hidden="true" tabindex="-1"></a>T = \dfrac{ \left<span class="co">[</span><span class="ot"> \sum_{j = 1}^{k} (d_{2j} - w_{2j}) \right</span><span class="co">]</span>^{2} }{ \sum_{j = 1}^{k} (V_{j})_{2} },</span>
+<span id="cb6-332"><a href="#cb6-332" aria-hidden="true" tabindex="-1"></a>$$ {#eq-EstTestelogrank}</span>
+<span id="cb6-333"><a href="#cb6-333" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-334"><a href="#cb6-334" aria-hidden="true" tabindex="-1"></a>\noindent  que, sob a hipótese nula $H_{0}: S_{1}(t) = S_{2}(t)$ para todo $t$ no período de acompanhamento, segue aproximadamente uma distribuição qui-quadrado com $1$ grau de liberdade para amostras grandes.</span>
+<span id="cb6-335"><a href="#cb6-335" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-336"><a href="#cb6-336" aria-hidden="true" tabindex="-1"></a>Para exemplificar a aplicação do teste de *logrank* em dados reais, utilizou-se o conjunto de dados sobre Leucemia Pediátrica, disponível no Apêndice (A) do livro *Análise de Sobrevivência Aplicada* de @colosimo2006analise. Esses mesmos dados foram usados para gerar a @fig-SobrKM. O objetivo do teste realizado foi avaliar se as curvas de sobrevivência das categorias da covariável <span class="in">`r6`</span> são iguais, com as seguintes hipóteses:</span>
+<span id="cb6-337"><a href="#cb6-337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-338"><a href="#cb6-338" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-339"><a href="#cb6-339" aria-hidden="true" tabindex="-1"></a>\begin{cases}</span>
+<span id="cb6-340"><a href="#cb6-340" aria-hidden="true" tabindex="-1"></a>  H_{0}: \text{As curvas de sobrevivência dos grupos são iguais ao longo do tempo} <span class="sc">\\</span></span>
+<span id="cb6-341"><a href="#cb6-341" aria-hidden="true" tabindex="-1"></a>  H_{1}: \text{As curvas de sobrevivência dos grupos são diferentes ao longo do tempo.}</span>
+<span id="cb6-342"><a href="#cb6-342" aria-hidden="true" tabindex="-1"></a>\end{cases}</span>
+<span id="cb6-343"><a href="#cb6-343" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-344"><a href="#cb6-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-345"><a href="#cb6-345" aria-hidden="true" tabindex="-1"></a>Veja a saída resultante do teste realizado no software R:</span>
+<span id="cb6-346"><a href="#cb6-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-349"><a href="#cb6-349" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb6-350"><a href="#cb6-350" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: Implementação do Teste Logrank</span></span>
+<span id="cb6-351"><a href="#cb6-351" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-352"><a href="#cb6-352" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------</span></span>
+<span id="cb6-353"><a href="#cb6-353" aria-hidden="true" tabindex="-1"></a><span class="co"># [2] TESTE DE LOG-RANK (Igual de Curvas de Sobrevivência)</span></span>
+<span id="cb6-354"><a href="#cb6-354" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------</span></span>
+<span id="cb6-355"><a href="#cb6-355" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-356"><a href="#cb6-356" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajustando a coluna r_6</span></span>
+<span id="cb6-357"><a href="#cb6-357" aria-hidden="true" tabindex="-1"></a>dados.adj <span class="ot">&lt;-</span> dados <span class="sc">%&gt;%</span></span>
+<span id="cb6-358"><a href="#cb6-358" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">grupo =</span> <span class="fu">ifelse</span>(r6 <span class="sc">==</span> <span class="dv">0</span>, <span class="st">"Category Zero"</span>, <span class="st">"Category One"</span>))</span>
+<span id="cb6-359"><a href="#cb6-359" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-360"><a href="#cb6-360" aria-hidden="true" tabindex="-1"></a><span class="co"># Cria um objeto de Surv</span></span>
+<span id="cb6-361"><a href="#cb6-361" aria-hidden="true" tabindex="-1"></a>dados.adj_surv <span class="ot">&lt;-</span> <span class="fu">Surv</span>(dados.adj<span class="sc">$</span>tempos, dados.adj<span class="sc">$</span>cens)</span>
+<span id="cb6-362"><a href="#cb6-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-363"><a href="#cb6-363" aria-hidden="true" tabindex="-1"></a><span class="co"># Aplica o Teste Logrank</span></span>
+<span id="cb6-364"><a href="#cb6-364" aria-hidden="true" tabindex="-1"></a>logrank.test <span class="ot">&lt;-</span> <span class="fu">survdiff</span>(dados.adj_surv <span class="sc">~</span> grupo, <span class="at">data =</span> dados.adj)</span>
+<span id="cb6-365"><a href="#cb6-365" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-366"><a href="#cb6-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-367"><a href="#cb6-367" aria-hidden="true" tabindex="-1"></a>Ao fixar o nível de significância em 5% ($\alpha = 0,05$), rejeitamsos a hipótese nula. Essa conclusão baseia-se no valor $p$ (probabilidade de significância) do teste sendo, $p-valor \approx$ <span class="in">`r logrank.test$pvalue`</span>. Como o $p-valor &lt; \alpha$, rejeita-se $H_{0}$. Assim, conclui-se que as curvas de sobrevivência dos grupos são diferentes ao longo do tempo, ao nível de significância de 5%.</span>
+<span id="cb6-368"><a href="#cb6-368" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-369"><a href="#cb6-369" aria-hidden="true" tabindex="-1"></a>A generalização do teste *logrank* para a comparação de $r &gt; 2$ funções de sobrevivência, $S_{1}(t), S_{2}(t), \ldots, S_{r}(t)$, é direta. Utilizando a mesma notação anterior, o índice $i$ varia agora de $1$ a $r$. Assim, os dados podem ser organizados em uma tabela de contingência $2 \times r$, onde cada coluna $i$ contém $d_{ij}$ falhas e $n_{ij} - d_{ij}$ sobreviventes. Dessa forma, a @tbl-ExampleTableContig seria estendida para ter $r$ colunas em vez de apenas duas.</span>
+<span id="cb6-370"><a href="#cb6-370" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-371"><a href="#cb6-371" aria-hidden="true" tabindex="-1"></a>Condicionada à experiência de falha e censura até o tempo $t_{j}$ e ao número total de falhas no tempo $t_{j}$, a distribuição conjunta de $d_{2j}, \ldots,d_{rj}$ segue uma hipergeométrica multivariada, dada por:</span>
+<span id="cb6-372"><a href="#cb6-372" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-373"><a href="#cb6-373" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-374"><a href="#cb6-374" aria-hidden="true" tabindex="-1"></a>\dfrac{ \prod_{i = 1}^{r} \binom{ n_{ij }}{ d_{ij} } }{ \binom{ n_{j }}{ d_{j} } }.</span>
+<span id="cb6-375"><a href="#cb6-375" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-376"><a href="#cb6-376" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-377"><a href="#cb6-377" aria-hidden="true" tabindex="-1"></a>A média de $d_{ij}$ é $w_{ij} = n_{ij} d_{j} n_{j}^{-1}$, bem como a variância de $d_{ij}$ e a covariância de $d_{ij}$ e $d_{lj}$ são, respectivamente,</span>
+<span id="cb6-378"><a href="#cb6-378" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-379"><a href="#cb6-379" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-380"><a href="#cb6-380" aria-hidden="true" tabindex="-1"></a>(V_{j})_{ii} = n_{ij} (n_{j} - n_{ij}) d_{j} (n_{j} - d_{j}) n_{j}^{-2} (n_{j} - 1)^{-1}</span>
+<span id="cb6-381"><a href="#cb6-381" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-382"><a href="#cb6-382" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-383"><a href="#cb6-383" aria-hidden="true" tabindex="-1"></a>e</span>
+<span id="cb6-384"><a href="#cb6-384" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-385"><a href="#cb6-385" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-386"><a href="#cb6-386" aria-hidden="true" tabindex="-1"></a>(V_{j})_{il} = - n_{ij} n_{lj} d_{j} (n_{j} - d_{j}) n_{j}^{-2} (n_{j} - 1)^{-1}.</span>
+<span id="cb6-387"><a href="#cb6-387" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-388"><a href="#cb6-388" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-389"><a href="#cb6-389" aria-hidden="true" tabindex="-1"></a>A estatística $v'_{j} = (d_{2j} - w_{2j}, \ldots, d_{rj} - w_{rj})$ possui média zero e matriz de variância-covariância $V_{j}$, com dimensão $r - 1$. A matriz $V_{j}$ contém os termos $(V_{j}){ii}$ na diagonal principal e $(V_{j})_{il}$, $i,l = 2, \ldots,r$, fora da diagonal principal. </span>
+<span id="cb6-390"><a href="#cb6-390" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-391"><a href="#cb6-391" aria-hidden="true" tabindex="-1"></a>A estatística $v$, que agrega as contribuições de todos os tempos distintos de falha, é definida como:</span>
+<span id="cb6-392"><a href="#cb6-392" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-393"><a href="#cb6-393" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-394"><a href="#cb6-394" aria-hidden="true" tabindex="-1"></a>v = \sum_{j = 1}^{k} v_{j},</span>
+<span id="cb6-395"><a href="#cb6-395" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-396"><a href="#cb6-396" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-397"><a href="#cb6-397" aria-hidden="true" tabindex="-1"></a>onde $v$ é um vetor de dimensão $(r - 1) \times 1$, cujos elementos correspondem às diferenças entre os totais observados e esperados de falhas.</span>
+<span id="cb6-398"><a href="#cb6-398" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-399"><a href="#cb6-399" aria-hidden="true" tabindex="-1"></a>Considerando, novamente, a independência das $k$ tabelas de contingência, a variância de $v$ é dada por $V = V_{1} + \ldots + V_{k}$. Um teste aproximado para a igualdade das $r$ funções de sobrevivência pode ser baseado na estatística:</span>
+<span id="cb6-400"><a href="#cb6-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-401"><a href="#cb6-401" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb6-402"><a href="#cb6-402" aria-hidden="true" tabindex="-1"></a>T = v´V^{-1} v,</span>
+<span id="cb6-403"><a href="#cb6-403" aria-hidden="true" tabindex="-1"></a>$$ {#eq-EstTestelogrankGeneralizado}</span>
+<span id="cb6-404"><a href="#cb6-404" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-405"><a href="#cb6-405" aria-hidden="true" tabindex="-1"></a>que, sob a hipótese nula $H_{0}$ (igualdade das curvas de sobrevivência), segue uma distribuição qui-quadrado com $r - 1$ graus de liberdade para amostras grandes. Os graus de liberdade são $r - 1$ em vez de $r$, pois os elementos de $v$ somam zero.</span>
+<span id="cb6-406"><a href="#cb6-406" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-407"><a href="#cb6-407" aria-hidden="true" tabindex="-1"></a>Uma aplicação para a comparação de $r$ curvas de sobrevivência...</span>
+<span id="cb6-408"><a href="#cb6-408" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-411"><a href="#cb6-411" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb6-412"><a href="#cb6-412" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: A ser preenchido 2</span></span>
+<span id="cb6-413"><a href="#cb6-413" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Código em R a ser preenchido"</span>)</span>
+<span id="cb6-414"><a href="#cb6-414" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb6-415"><a href="#cb6-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-416"><a href="#cb6-416" aria-hidden="true" tabindex="-1"></a><span class="fu">### Outros Testes</span></span>
+<span id="cb6-417"><a href="#cb6-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-418"><a href="#cb6-418" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">...</span><span class="co">]</span></span>
+<span id="cb6-419"><a href="#cb6-419" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-420"><a href="#cb6-420" aria-hidden="true" tabindex="-1"></a>:::: progress</span>
+<span id="cb6-421"><a href="#cb6-421" aria-hidden="true" tabindex="-1"></a>:::: {.progress-bar style="width: 100%;"}</span>
+<span id="cb6-422"><a href="#cb6-422" aria-hidden="true" tabindex="-1"></a>::::</span>
+<span id="cb6-423"><a href="#cb6-423" aria-hidden="true" tabindex="-1"></a>::::</span>
+</code><button title="Copiar para a área de transferência" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
