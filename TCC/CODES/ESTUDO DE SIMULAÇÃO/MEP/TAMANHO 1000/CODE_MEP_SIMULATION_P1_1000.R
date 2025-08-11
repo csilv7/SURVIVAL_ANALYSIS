@@ -79,7 +79,7 @@ for (id in 1:k) {
     fit.model <- tryCatch(
       {
         optim(
-          par = init, fn = loglikelihood.MEP, method = "BFGS", hessian = TRUE,
+          par = init, fn = loglikelihood.MEP, method = "L-BFGS-B", hessian = TRUE,
           interval = y, cens = df$cens, X = X, cuts.points = breaks,
           control = list(fnscale = -1)
         )
