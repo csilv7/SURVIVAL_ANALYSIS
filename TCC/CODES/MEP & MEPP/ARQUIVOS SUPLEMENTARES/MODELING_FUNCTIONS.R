@@ -48,8 +48,11 @@ time.grid.interval <- function(li, ri, type = "OBS", bmax = 10) {
 f.surv.MEP <- function(L, R, x.cov, coeffs.par, cuts.points, rates.par, type) {
   # Para o Tempo de Falha não Censurado
   if (type == "interval") {
+    L <- as.numeric(L)
+    R <- as.numeric(R)
+    
     # Preditor linear
-    effect <- x.cov %*% coeffs.par
+    effect <- as.numeric(x.cov %*% coeffs.par)
     
     # Contribuição para Função Verossimilhança
     surv.L <- 1 - ppch(q = L/exp(effect), cuts = cuts.points, levels = rates.par)
@@ -59,8 +62,10 @@ f.surv.MEP <- function(L, R, x.cov, coeffs.par, cuts.points, rates.par, type) {
   
   # Para o Tempo de Falha Censurado
   if (type == "cens") {
+    L <- as.numeric(L)
+    
     # Preditor Linear
-    effect <- x.cov %*% coeffs.par
+    effect <- as.numeric(x.cov %*% coeffs.par)
     
     # Contribuição para Função Verossimilhança
     surv.L <- 1 - ppch(q = L/exp(effect), cuts = cuts.points, levels = rates.par)
@@ -70,6 +75,7 @@ f.surv.MEP <- function(L, R, x.cov, coeffs.par, cuts.points, rates.par, type) {
 
 # Função Log-verossimilhança
 loglikelihood.MEP <- function(par, interval, cens, X, cuts.points) {
+  
   # Número de parâmetros e partições
   n.par <- length(par)
   n.cuts <- length(cuts.points)
@@ -79,8 +85,8 @@ loglikelihood.MEP <- function(par, interval, cens, X, cuts.points) {
   coeffs.par <- par[(n.cuts+2):n.par]
   
   # Distinção dos Limites
-  L <- interval[, 1]
-  R <- interval[, 2]
+  L <- as.numeric(interval[, 1])
+  R <- as.numeric(interval[, 2])
   
   # Função Log-verossimilhança
   S1 <- f.surv.MEP(
@@ -138,8 +144,8 @@ loglikelihood.MEPP <- function(par, interval, cens, X, cuts.points) {
   coeffs.par <- par[(n.cuts+3):n.par]
   
   # Distinção dos Limites
-  L <- interval[, 1]
-  R <- interval[, 2]
+  L <- as.numeric(interval[, 1])
+  R <- as.numeric(interval[, 2])
   
   # Função Log-verossimilhança
   S1 <- f.surv.MEPP(

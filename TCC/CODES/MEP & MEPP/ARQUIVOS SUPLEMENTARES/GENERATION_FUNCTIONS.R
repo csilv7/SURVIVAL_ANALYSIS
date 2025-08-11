@@ -136,6 +136,9 @@ MEPP.TIME.r <- function(t, x.cov, coeffs.par, cuts.points, rates.par, alpha.par,
   # rates.par: Taxa de Falha em cada intervalo
   # u.unif: Realização aleatória de uma Uniforme(0, 1)
   
+  t <- as.numeric(t)
+  coeffs.par <- as.numeric(coeffs.par)
+  
   # Preditor Linear
   effect <- x.cov %*% coeffs.par
   
@@ -153,6 +156,11 @@ GEN.MEPP.r <- function(n, x.cov, coeffs.par, cuts.points, rates.par, alpha.par) 
   # coeffs.par: Coeficientes do Modelo
   # cuts.points: Partições no Eixo dos Tempos
   # rates.par: Taxa de Falha em cada intervalo
+  
+  coeffs.par <- as.numeric(coeffs.par)
+  for (i in 1:ncol(x.cov)) {
+    x.cov[, i] <- as.numeric(x.cov[, i])
+  }
   
   # Vetor para armazenar os tempos gerados
   MEPP.times <- numeric(n)
